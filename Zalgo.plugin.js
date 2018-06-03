@@ -1,4 +1,4 @@
-//META{"name":"Zalgo","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"}*//
+//META{"name":"Zalgo","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/Zalgo.plugin.js"}*//
 
 class Zalgo {
     getName() { return "Zalgo"; }
