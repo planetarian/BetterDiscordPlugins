@@ -60,6 +60,32 @@ class Zalgo {
         };
         this.settings = this.defaultSettings;
     }
+
+    getSettingsPanel() {
+        var panel = $("<form>").addClass("form").css("width", "100%");
+        this.generateSettings(panel);
+        return panel[0];
+    }
+
+    generateSettings(panel) {
+        new PluginSettings.ControlGroup("Settings", () => {
+            this.saveSettings();
+        }, {
+            shown: true
+        }).appendTo(panel).append(
+            new PluginSettings.Slider("Corruption amount", "adjust how corrupted your text becomes", 0.05, 3.0, 0.05,
+                this.settings.Zalgo.corruptionAmount, (val) => { this.settings.Zalgo.corruptionAmount = val;})
+            , new PluginSettings.Slider("Ramp end position", "adjust the endpoint of the ramp-in when using the `r` prefix", 0.05, 1.0, 0.05,
+                this.settings.Zalgo.rampEnd, (val) => { this.settings.Zalgo.rampEnd = val;})
+            // Changing these to a single mid/lower option because discord screws it up when you do multiple at once
+            //, new PluginSettings.Checkbox("Corrupt upward", "",
+                //this.settings.Zalgo.corruptUp, (checked) => { this.settings.Zalgo.corruptUp = checked;}),
+            , new PluginSettings.Checkbox("Obscure", "determines whether zalgo characters are placed over the text or beneath it",
+                this.settings.Zalgo.corruptMid, (checked) => { this.settings.Zalgo.corruptMid = checked;})
+            //, new PluginSettings.Checkbox("Corrupt downward", "",
+                //this.settings.Zalgo.corruptDown, (checked) => { this.settings.Zalgo.corruptDown = checked;})
+        );
+    }
     
     loadSettings() {
         this.settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
@@ -97,6 +123,13 @@ class Zalgo {
             this.initialize();
         }
     }
+
+    
+    // Called when a message is received
+    onMessage() {}
+
+    // Called when a server or channel is switched
+    onSwitch() { this.initialize(); }
 
     initialize() {
         this.loadSettings();
@@ -144,39 +177,6 @@ class Zalgo {
         else if (!hasStart) startAmt = 0;
 
         return this.getZalgo(contents, parseFloat(rampEnd), parseFloat(startAmt), parseFloat(endAmt));
-    }
-
-    
-    // Called when a message is received
-    onMessage() {}
-
-    // Called when a server or channel is switched
-    onSwitch() { this.initialize(); }
-
-    getSettingsPanel() {
-        var panel = $("<form>").addClass("form").css("width", "100%");
-        this.generateSettings(panel);
-        return panel[0];
-    }
-
-    generateSettings(panel) {
-        new PluginSettings.ControlGroup("Settings", () => {
-            this.saveSettings();
-        }, {
-            shown: true
-        }).appendTo(panel).append(
-            new PluginSettings.Slider("Corruption amount", "adjust how corrupted your text becomes", 0.05, 3.0, 0.05,
-                this.settings.Zalgo.corruptionAmount, (val) => { this.settings.Zalgo.corruptionAmount = val;})
-            , new PluginSettings.Slider("Ramp end position", "adjust the endpoint of the ramp-in when using the `r` prefix", 0.05, 1.0, 0.05,
-                this.settings.Zalgo.rampEnd, (val) => { this.settings.Zalgo.rampEnd = val;})
-            // Changing these to a single mid/lower option because discord screws it up when you do multiple at once
-            //, new PluginSettings.Checkbox("Corrupt upward", "",
-                //this.settings.Zalgo.corruptUp, (checked) => { this.settings.Zalgo.corruptUp = checked;}),
-            , new PluginSettings.Checkbox("Obscure", "determines whether zalgo characters are placed over the text or beneath it",
-                this.settings.Zalgo.corruptMid, (checked) => { this.settings.Zalgo.corruptMid = checked;})
-            //, new PluginSettings.Checkbox("Corrupt downward", "",
-                //this.settings.Zalgo.corruptDown, (checked) => { this.settings.Zalgo.corruptDown = checked;})
-        );
     }
 
     getZalgo(txt, rampEnd, startAmt, endAmt) {
