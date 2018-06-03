@@ -3,11 +3,11 @@
 class Zalgo {
     getName() { return "Zalgo"; }
     getDescription() {
-        return "Zalgo text generation plugin -- write something {{like this}} to corrupt it " + this.getZalgo("like this",1,1,1) + "\r\n"
+        return "Zalgo text generation plugin -- write something {{like this}} to corrupt it " + this.getZalgo("like this",1,this.settings.Zalgo.corruptionAmount,this.settings.Zalgo.corruptionAmount) + "\r\n"
             + "You can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n"
-            + "    {{0.1:just a little corrupt}} -> " + this.getZalgo("just a little corrupt",1,0.1,0.1) + "\r\n"
+            + "    {{0.01:just a little corrupt}} -> " + this.getZalgo("just a little corrupt",1,0.01,0.01) + "\r\n"
             + "You can also ramp the corruption amount gradually:\r\n"
-            + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,3);
+            + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Chami"; }
