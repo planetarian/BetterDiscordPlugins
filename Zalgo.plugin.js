@@ -3,7 +3,7 @@
 class Zalgo {
     getName() { return "Zalgo"; }
     getDescription() {
-        return "Zalgo text generation plugin -- write something {{like this}} to make it " + this.getZalgo("like this",1,1,1) + "\r\n"
+        return "Zalgo text generation plugin -- write something {{like this}} to corrupt it " + this.getZalgo("like this",1,1,1) + "\r\n"
             + "You can configure the amount of corruption, or prefix it with a corruption amount:\r\n"
             + "    {{0.1:just a little corrupt}} -> " + this.getZalgo("just a little corrupt",1,0.1,0.1) + "\r\n"
             + "You can also ramp the corruption amount gradually:\r\n"
