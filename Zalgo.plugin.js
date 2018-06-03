@@ -2,7 +2,13 @@
 
 class Zalgo {
     getName() { return "Zalgo"; }
-    getDescription() { return "Zalgo text generation plugin"; }
+    getDescription() {
+        return "Zalgo text generation plugin -- write something {{like this}} to make it " + this.getZalgo("like this",1,1,1) + "\r\n"
+            + "You can configure the amount of corruption, or prefix it with a corruption amount:\r\n"
+            + "    {{0.1:just a little corrupt}} -> " + this.getZalgo("just a little corrupt",1,0.1,0.1) + "\r\n"
+            + "You can also ramp the corruption amount gradually:\r\n"
+            + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,3);
+    }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>Zalgo Settings</h3>"; }
@@ -17,10 +23,10 @@ class Zalgo {
             '\u0303', /*     ̃     */    '\u0302', /*     ̂     */    '\u030c', /*     ̌     */    '\u0350', /*     ͐     */
             '\u0300', /*     ̀     */    '\u0301', /*     ́     */    '\u030b', /*     ̋     */    '\u030f', /*     ̏     */
             '\u0312', /*     ̒    */    '\u0313', /*     ̓     */    '\u0314', /*     ̔     */    '\u033d', /*     ̽     */
-            '\u0309', /*     ̉     */    '\u0363', /*     ͣ     */    '\u0364', /*     ͤ     */    '\u0365', /*     ͥ     */
-            '\u0366', /*     ͦ     */    '\u0367', /*     ͧ     */    '\u0368', /*     ͨ     */    '\u0369', /*     ͩ     */
-            '\u036a', /*     ͪ     */    '\u036b', /*     ͫ     */    '\u036c', /*     ͬ     */    '\u036d', /*     ͭ     */
-            '\u036e', /*     ͮ     */    '\u036f', /*     ͯ     */    '\u033e', /*     ̾     */    '\u035b', /*     ͛     */
+            '\u0309', /*     ̉     */    '\u0363', /*     ͣ    */    '\u0364', /*     ͤ    */    '\u0365', /*     ͥ    */
+            '\u0366', /*     ͦ    */    '\u0367', /*     ͧ    */    '\u0368', /*     ͨ    */    '\u0369', /*     ͩ    */
+            '\u036a', /*     ͪ    */    '\u036b', /*     ͫ    */    '\u036c', /*     ͬ    */    '\u036d', /*     ͭ    */
+            '\u036e', /*     ͮ    */    '\u036f', /*     ͯ    */    '\u033e', /*     ̾     */    '\u035b', /*     ͛     */
             '\u0346', /*     ͆     */    '\u031a'  /*     ̚     */
         ];
         this.zalgoDown = [
