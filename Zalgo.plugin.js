@@ -101,16 +101,16 @@ class Zalgo {
     // Called when the plugin is activated (including after reloads)
     start() {
         let libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript || (window.ZeresLibrary && window.ZeresLibrary.isOutdated)) {
-			if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
+        if (!libraryScript || (window.ZeresLibrary && window.ZeresLibrary.isOutdated)) {
+            if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
+            libraryScript = document.createElement("script");
+            libraryScript.setAttribute("type", "text/javascript");
+            libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
+            libraryScript.setAttribute("id", "zeresLibraryScript");
             document.head.appendChild(libraryScript);
-		}
+        }
 
-		if (window.ZeresLibrary) this.initialize();
+        if (window.ZeresLibrary) this.initialize();
         else libraryScript.addEventListener("load", () => { this.initialize(); });
         
         this.log('Started');
@@ -144,6 +144,9 @@ class Zalgo {
     onSwitch() { this.initialize(); }
 
     initialize() {
+        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
+
         this.loadSettings();
 
         let textArea = $('.chat textarea');
@@ -171,9 +174,6 @@ class Zalgo {
         });
         
         this.initialized = true;
-        
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
     }
 
     doZalgo(match, ramp, rampEnd, startAmt, endAmt, contents, offset, string) {
