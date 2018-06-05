@@ -1,8 +1,8 @@
-//META{"name":"BDEmotesFixer","website":"https://github.com/planetarian/BetterDiscordPlugins"}*//
+//META{"name":"BDEmotesFixer","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/BDEmotesFixer.plugin.js"}*//
 
 class BDEmotesFixer {
     getName() { return "BDEmotesFixer"; }
-    getDescription() { return "Fixes BD so that FFZ emotes once again take priority over BTTV emotes. Get your Klappa on."; }
+    getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>BDEmotesFixer Settings</h3>"; }
