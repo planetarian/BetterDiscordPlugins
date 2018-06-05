@@ -24,7 +24,7 @@
 
 @else @*/
 
-class BDEmotesFixer {
+class BDEmotesFFZPrioritizer {
     getName() { return "BDEmotesFFZPrioritizer"; }
     getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
     getVersion() { return "0.0.2"; }
