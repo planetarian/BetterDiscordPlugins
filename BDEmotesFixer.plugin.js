@@ -49,7 +49,7 @@ class BDEmotesFixer {
         if (window.ZeresLibrary) this.initialize();
         else libraryScript.addEventListener("load", () => { this.initialize(); });
         
-        fixEmotes();
+        this.fixEmotes();
     }
 
     initialize(){
@@ -61,7 +61,7 @@ class BDEmotesFixer {
     unload(){}
 
     // check on switch, in case BD updates emotes file while client is running
-    onSwitch() { fixEmotes(); }
+    onSwitch() { this.fixEmotes(); }
 
     fixEmotes() {
         let ffz = window.bdEmotes.FrankerFaceZ;
