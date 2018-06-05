@@ -27,7 +27,7 @@
 class BDEmotesFixer {
     getName() { return "BDEmotesFixer"; }
     getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>BDEmotesFixer Settings</h3>"; }
 
@@ -48,6 +48,8 @@ class BDEmotesFixer {
 
         if (window.ZeresLibrary) this.initialize();
         else libraryScript.addEventListener("load", () => { this.initialize(); });
+        
+        fixEmotes();
     }
 
     initialize(){
@@ -59,7 +61,9 @@ class BDEmotesFixer {
     unload(){}
 
     // check on switch, in case BD updates emotes file while client is running
-    onSwitch() {
+    onSwitch() { fixEmotes(); }
+
+    fixEmotes() {
         let ffz = window.bdEmotes.FrankerFaceZ;
         if (ffz && ffz.Klappa && ffz.Klappa.startsWith('https://cdn.frankerfacez.com/')) {
             window.bdEmotes.FrankerFaceZ = window.bdEmotes.BTTV2;
