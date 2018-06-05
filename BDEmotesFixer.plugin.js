@@ -58,7 +58,7 @@ class BDEmotesFixer {
     stop(){}
     unload(){}
 
-    // check on switch, in case BD updates emotes file while client is runningj
+    // check on switch, in case BD updates emotes file while client is running
     onSwitch() {
         let ffz = window.bdEmotes.FrankerFaceZ;
         if (ffz && ffz.Klappa && ffz.Klappa.startsWith('https://cdn.frankerfacez.com/')) {
