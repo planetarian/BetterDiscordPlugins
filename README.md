@@ -1,7 +1,7 @@
 # BetterDiscordPlugins
 Plugins I've written for BetterDiscord
 
-## BDEmotesFixer
+## BDEmotesFFZPrioritizer
 Fixes BD's third-party emotes so that FFZ emotes have priority over BTTV ones.
 
 ## Zalgo
