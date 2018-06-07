@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>Zalgo Settings</h3>"; }
 
@@ -29,6 +29,14 @@ class Zalgo {
             '\u036e', /*     ͮ    */    '\u036f', /*     ͯ    */    '\u033e', /*     ̾     */    '\u035b', /*     ͛     */
             '\u0346', /*     ͆     */    '\u031a'  /*     ̚     */
         ];
+        this.zalgoMid = [
+            '\u0315', /*     ̕     */    '\u031b', /*     ̛     */    '\u0340', /*     ̀     */    '\u0341', /*     ́     */
+            '\u0358', /*     ͘     */    '\u0321', /*     ̡     */    '\u0322', /*     ̢     */    '\u0327', /*     ̧     */
+            '\u0328', /*     ̨     */    '\u0334', /*     ̴     */    '\u0335', /*     ̵     */    '\u0336', /*     ̶     */
+            '\u034f', /*     ͏     */    '\u035c', /*     ͜     */    '\u035d', /*     ͝     */    '\u035e', /*     ͞     */
+            '\u035f', /*     ͟     */    '\u0360', /*     ͠     */    '\u0362', /*     ͢     */    '\u0338', /*     ̸     */
+            '\u0337', /*     ̷     */    '\u0361', /*     ͡     */    '\u0489'  /*    ҉_    */    
+        ];
         this.zalgoDown = [
             '\u0316', /*     ̖     */    '\u0317', /*     ̗     */    '\u0318', /*     ̘     */    '\u0319', /*     ̙     */
             '\u031c', /*     ̜     */    '\u031d', /*     ̝     */    '\u031e', /*     ̞     */    '\u031f', /*     ̟     */
@@ -41,18 +49,10 @@ class Zalgo {
             '\u034e', /*     ͎     */    '\u0353', /*     ͓     */    '\u0354', /*     ͔     */    '\u0355', /*     ͕     */
             '\u0356', /*     ͖     */    '\u0359', /*     ͙     */    '\u035a', /*     ͚     */    '\u0323'  /*     ̣     */
         ];
-        this.zalgoMid = [
-            '\u0315', /*     ̕     */    '\u031b', /*     ̛     */    '\u0340', /*     ̀     */    '\u0341', /*     ́     */
-            '\u0358', /*     ͘     */    '\u0321', /*     ̡     */    '\u0322', /*     ̢     */    '\u0327', /*     ̧     */
-            '\u0328', /*     ̨     */    '\u0334', /*     ̴     */    '\u0335', /*     ̵     */    '\u0336', /*     ̶     */
-            '\u034f', /*     ͏     */    '\u035c', /*     ͜     */    '\u035d', /*     ͝     */    '\u035e', /*     ͞     */
-            '\u035f', /*     ͟     */    '\u0360', /*     ͠     */    '\u0362', /*     ͢     */    '\u0338', /*     ̸     */
-            '\u0337', /*     ̷     */    '\u0361', /*     ͡     */    '\u0489'  /*    ҉_    */    
-        ];
         this.defaultSettings = {
             Zalgo: {
-                corruptionAmount: 0.5,
-                rampEnd: 1.0,
+                corruptionAmount: 1.5,
+                rampEnd: 0.75,
                 corruptUp: false, // hidden
                 corruptMid: true,
                 corruptDown: false // hidden
@@ -132,7 +132,7 @@ class Zalgo {
     observer({ addedNodes, removedNodes }) {
         if(addedNodes && addedNodes[0] && addedNodes[0].classList
             && addedNodes[0].classList.contains('messages-wrapper')) {
-            this.initialize();
+            this.update();
         }
     }
 
@@ -141,14 +141,16 @@ class Zalgo {
     onMessage() {}
 
     // Called when a server or channel is switched
-    onSwitch() { this.initialize(); }
-
-    initialize() {
+    onSwitch() {}
+	
+	initialize(){
         PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
             "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
-
         this.loadSettings();
+		this.update();
+	}
 
+    update() {
         let textArea = $('.chat textarea');
         if (!textArea.length) return;
 
@@ -174,6 +176,7 @@ class Zalgo {
         });
         
         this.initialized = true;
+
     }
 
     doZalgo(match, ramp, rampEnd, startAmt, endAmt, contents, offset, string) {
@@ -223,6 +226,8 @@ class Zalgo {
 
             // Normalized value (0-1.0) representing our current position within the ramp
             let rampX = rampEndIndex == 0 ? 1 : Math.min(1, i / rampEndIndex);
+            // Square the value to create an ease-in curve
+            rampX = Math.pow(rampX,4);
             // To determine the final corruption amount at this position
             let rampDiff = rampX * (endAmt - startAmt);
             let amt = startAmt + rampDiff;
