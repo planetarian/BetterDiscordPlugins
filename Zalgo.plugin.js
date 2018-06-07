@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>Zalgo Settings</h3>"; }
 
@@ -51,7 +51,7 @@ class Zalgo {
         ];
         this.defaultSettings = {
             Zalgo: {
-                corruptionAmount: 1.5,
+                corruptionAmount: 1.0,
                 rampEnd: 0.75,
                 corruptUp: false, // hidden
                 corruptMid: true,
@@ -142,13 +142,13 @@ class Zalgo {
 
     // Called when a server or channel is switched
     onSwitch() {}
-	
-	initialize(){
+    
+    initialize(){
         PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
             "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
         this.loadSettings();
-		this.update();
-	}
+        this.update();
+    }
 
     update() {
         let textArea = $('.chat textarea');
@@ -226,7 +226,7 @@ class Zalgo {
 
             // Normalized value (0-1.0) representing our current position within the ramp
             let rampX = rampEndIndex == 0 ? 1 : Math.min(1, i / rampEndIndex);
-            // Square the value to create an ease-in curve
+            // Square the ramp value to ease it in
             rampX = Math.pow(rampX,4);
             // To determine the final corruption amount at this position
             let rampDiff = rampX * (endAmt - startAmt);
