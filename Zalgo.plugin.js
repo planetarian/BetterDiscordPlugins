@@ -80,7 +80,7 @@ class Zalgo {
             // Changing these to a single mid/lower option because discord screws it up when you do multiple at once
             //, new PluginSettings.Checkbox("Corrupt upward", "",
                 //this.settings.Zalgo.corruptUp, (checked) => { this.settings.Zalgo.corruptUp = checked;}),
-            , new PluginSettings.Checkbox("Obscure", "determines whether zalgo characters are placed over the text or beneath it",
+            , new PluginSettings.Checkbox("Obscure text", "determines whether zalgo characters are placed over the text or beneath it",
                 this.settings.Zalgo.corruptMid, (checked) => { this.settings.Zalgo.corruptMid = checked;})
             //, new PluginSettings.Checkbox("Corrupt downward", "",
                 //this.settings.Zalgo.corruptDown, (checked) => { this.settings.Zalgo.corruptDown = checked;})
