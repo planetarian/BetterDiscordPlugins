@@ -3,9 +3,9 @@
 class InlineJsEval {
     getName() { return "InlineJsEval"; }
     getDescription() {
-        return "JavaScript eval() plugin -- type eval(JavaScript code here) and press tab to execute the eval. Basically an inline JS console, more or less.";
+        return "JavaScript eval() plugin -- type eval(<js code here>) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.";
     }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>" + this.getName() + " Settings</h3>"; }
 
@@ -42,7 +42,7 @@ class InlineJsEval {
 
     log(text) {
         return console.log(`[%c${this.getName()}%c] ${text}`,
-            'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+            'color: #F7D; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
     }
 
     observer({ addedNodes, removedNodes }) {
@@ -71,11 +71,14 @@ class InlineJsEval {
         let inputBox = textArea[0];
         textArea.off('keydown.js_eval').on('keydown.js_eval', (e) => {
             if (e.which == 9 && inputBox.value) {
-                let value = inputBox.value.substring(0, inputBox.selectionEnd);
+                let cursorPos = inputBox.selectionEnd;
+                let value = inputBox.value.substring(0, cursorPos);
+                let tail = inputBox.value.substring(cursorPos);
+
                 let regex = /eval\((.*)\)$/g;
                 if (regex.test(value)) {
                     try {
-                        value = value.replace(regex, this.doEval.bind(this));
+                        value = value.replace(regex, this.doEval.bind(this)) + tail;
                     }
                     catch (ex) {
                         PluginUtilities.showToast(ex, {type: 'error'});
@@ -85,6 +88,8 @@ class InlineJsEval {
                         inputBox.focus();
                         inputBox.select();
                         document.execCommand("insertText", false, value);
+                        let newCursorPos = value.length - tail.length;
+                        inputBox.setSelectionRange(newCursorPos, newCursorPos);
                     }
                 }
             }
@@ -94,6 +99,7 @@ class InlineJsEval {
 
     doEval(match, str, offset, string) {
         this.log('eval: ' + str);
-        return eval(str);
+        let result = eval(str);
+        return result;
     }
 }
