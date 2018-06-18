@@ -3,7 +3,7 @@
 class InlineJsEval {
     getName() { return "InlineJsEval"; }
     getDescription() {
-        return "JavaScript eval() plugin -- type eval(<js code here>) and press tab to execute the eval. Basically an inline JS console, more or less.";
+        return "JavaScript eval() plugin -- type eval(JavaScript code here) and press tab to execute the eval. Basically an inline JS console, more or less.";
     }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Chami"; }
@@ -42,7 +42,7 @@ class InlineJsEval {
 
     log(text) {
         return console.log(`[%c${this.getName()}%c] ${text}`,
-            'color: #F7D; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+            'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
     }
 
     observer({ addedNodes, removedNodes }) {
