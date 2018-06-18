@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
-    getVersion() { return "0.0.5"; }
+    getVersion() { return "0.0.6"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -156,7 +156,9 @@ class Zalgo {
         textArea.off('keydown.zalgo').on('keydown.zalgo', (e) => {
             // Corrupt text either when we press enter or tab-complete
             if ((e.which == 13 || e.which == 9) && inputBox.value) {
+                let cursorPos = inputBox.selectionEnd;
                 let value = inputBox.value;
+                let tailLen = value.length - cursorPos;
                 
                 // If we pressed Tab, perform corruption only if the cursor is right after the closing braces.
                 if (e.which == 9 && !value.substring(0, inputBox.selectionEnd).endsWith('}}'))
@@ -180,6 +182,12 @@ class Zalgo {
                     inputBox.focus();
                     inputBox.select();
                     document.execCommand("insertText", false, value);
+
+                    // If we're using tab-completion, keep the cursor position, in case we were in the middle of a line
+                    if (e.which == 9) {
+                        let newCursorPos = value.length - tailLen;
+                        inputBox.setSelectionRange(newCursorPos, newCursorPos);
+                    }
                 }
             }
         });
