@@ -5,7 +5,7 @@ class InlineJsEval {
     getDescription() {
         return "JavaScript eval() plugin -- type eval(<js code here>) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.";
     }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>" + this.getName() + " Settings</h3>"; }
 
@@ -88,6 +88,7 @@ class InlineJsEval {
                         inputBox.focus();
                         inputBox.select();
                         document.execCommand("insertText", false, value);
+                        // Set the cursor position to the end of the eval'd expression result
                         let newCursorPos = value.length - tail.length;
                         inputBox.setSelectionRange(newCursorPos, newCursorPos);
                     }
