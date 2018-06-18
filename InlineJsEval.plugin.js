@@ -3,7 +3,7 @@
 class InlineJsEval {
     getName() { return "InlineJsEval"; }
     getDescription() {
-        return "JavaScript eval() plugin -- type eval(<js code here>) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.";
+        return "JavaScript eval() plugin -- type e.g. eval(1 + 1) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.";
     }
     getVersion() { return "0.0.4"; }
     getAuthor() { return "Chami"; }
