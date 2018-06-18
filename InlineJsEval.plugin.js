@@ -5,7 +5,7 @@ class InlineJsEval {
     getDescription() {
         return "JavaScript eval() plugin -- type eval(JavaScript code here) and press tab to execute the eval. Basically an inline JS console, more or less.";
     }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>" + this.getName() + " Settings</h3>"; }
 
@@ -94,7 +94,6 @@ class InlineJsEval {
 
     doEval(match, str, offset, string) {
         this.log('eval: ' + str);
-        let result = eval(str);
-        return result;
+        return eval(str);
     }
 }
