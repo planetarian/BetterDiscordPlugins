@@ -9,9 +9,8 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Chami"; }
-    getSettingsPanel() { return "<h3>Zalgo Settings</h3>"; }
 
     constructor() {
         this.zalgoUp = [
