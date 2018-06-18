@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
     }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -135,7 +135,6 @@ class Zalgo {
         }
     }
 
-    
     // Called when a message is received
     onMessage() {}
 
@@ -155,8 +154,14 @@ class Zalgo {
 
         let inputBox = textArea[0];
         textArea.off('keydown.zalgo').on('keydown.zalgo', (e) => {
-            if (e.which == 13 && inputBox.value) {
+            // Corrupt text either when we press enter or tab-complete
+            if ((e.which == 13 || e.which == 9) && inputBox.value) {
                 let value = inputBox.value;
+                
+                // If we pressed Tab, perform corruption only if the cursor is right after the closing braces.
+                if (e.which == 9 && !value.substring(0, inputBox.selectionEnd).endsWith('}}'))
+                    return;
+                
                 // Markup format:
                 // {{<r><rampEnd>,<startAmount>-<endAmount>:text}}
                 // r: enable ramping
@@ -167,6 +172,11 @@ class Zalgo {
                 let regex = /\{\{(?:(?:(r)(\d+(?:\.\d+)?)?,?)?(?:(\d+(?:\.\d+)?)-)?(\d+(?:\.\d+)?)?\:)?((?:(?!{{).)*?)\}\}/g;
                 if (regex.test(value)) {
                     value = value.replace(regex, this.doZalgo.bind(this));
+                    if (value.length > 2000) {
+                        PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + value.length, {type: 'error'});
+                        e.preventDefault();
+                        return;
+                    }
                     inputBox.focus();
                     inputBox.select();
                     document.execCommand("insertText", false, value);
@@ -175,7 +185,6 @@ class Zalgo {
         });
         
         this.initialized = true;
-
     }
 
     doZalgo(match, ramp, rampEnd, startAmt, endAmt, contents, offset, string) {
@@ -286,5 +295,4 @@ class Zalgo {
                 return true;
         return false;
     }
-    
 }
