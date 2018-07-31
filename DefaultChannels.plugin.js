@@ -1,4 +1,4 @@
-//META{"name":"DefaultChannels"}*//
+//META{"name":"DefaultChannels","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/DefaultChannels.plugin.js"}*//
 
 class DefaultChannels {
     getName() { return "DefaultChannels"; }
@@ -156,8 +156,8 @@ class DefaultChannels {
     onSwitch() {}
     
     initialize(){
-        /*PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");//*/
+        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/DefaultChannels.plugin.js");
         this.loadSettings();
         this.update();
     }
