@@ -5,14 +5,15 @@ class DefaultChannels {
     getDescription() {
         return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.5"; }
+    getVersion() { return "0.0.6"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
         this.defaultSettings = {
             DefaultChannels: {
                 firstSwitchOnly: true,
-                defaultChannels: {}
+                defaultChannels: {},
+                perServerSwitchModes: {}
             }
         };
         this.settings = this.defaultSettings;
@@ -21,6 +22,16 @@ class DefaultChannels {
             item: "item-1Yvehc",
             itemToggle: "itemToggle-S7XGOQ",
             label: "label-JWQiNe"
+        };
+        this.labels = {
+            inherit: "Use global",
+            firstOnly: "First opened",
+            always: "Always"
+        };
+        this.checkModes = {
+            inherit: " indeterminate",
+            firstOnly: " checked",
+            always: ""
         };
     }
 
@@ -122,37 +133,80 @@ class DefaultChannels {
                 }
             }
 
-            let guildName = DiscordModules.GuildStore.getGuild(guildId).name;
 
-            let newItem = $('<div class="'+this.normals.item+' '+this.normals.itemToggle+' dc-toggle"><div class="'+this.normals.label
+            let config = this.settings.DefaultChannels;
+
+            let isDefaultChannel = config.defaultChannels[guildId] == channelId;
+            let defaultChannelToggle = $('<div class="'+this.normals.item+' '+this.normals.itemToggle+' dc-defaultChannelToggle"><div class="'+this.normals.label
                 +'">Default Channel</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"'
-                + (this.settings.DefaultChannels.defaultChannels[guildId] == channelId ? ' checked' : '')
+                + (isDefaultChannel ? ' checked' : '')
                 + '><span></span></div><span></span></div></div></div>')[0];
 
+
             // Add the toggle menuitem, preferably right below the 'Mute #channel' item, but otherwise put it wherever
-            if (preItem) {
-                if (preItem.nextSibling)
-                    preItem.parentNode.insertBefore(newItem, preItem.nextSibling);
-                else
-                    preItem.parentNode.append(newItem);
-            }
-            else {
-                element.children[0].append(newItem); // Theoretically should never happen?
-            }
+            if (preItem.nextSibling)
+                preItem.parentNode.insertBefore(defaultChannelToggle, preItem.nextSibling);
+            else
+                preItem.parentNode.append(defaultChannelToggle);
 
             // Handle the click event -- set the default channel and save the settings to file
             let self = this;
-            newItem = $('.dc-toggle');
-            newItem.click(e => {
-                let set = this.settings.DefaultChannels;
-                if (set.defaultChannels[guildId] == channelId) {
-                    delete set.defaultChannels[guildId];
-                    newItem.find("input").prop("checked", false);
+            let activeDefaultChannelToggle = $('.dc-defaultChannelToggle');
+
+            // Server name for logging purposes
+            let guildName = DiscordModules.GuildStore.getGuild(guildId).name;
+
+            // Event for handling click of switch mode toggle
+            let switchModeToggleClick = e => {
+                let config = this.settings.DefaultChannels;
+                if (config.perServerSwitchModes[guildId] == "firstOnly")
+                    config.perServerSwitchModes[guildId] = "always";
+                else if (config.perServerSwitchModes[guildId] == "always")
+                    config.perServerSwitchModes[guildId] = "inherit";
+                else // inherit/null
+                    config.perServerSwitchModes[guildId] = "firstOnly";
+                
+                $('.dc-switchModeDescription').text(this.labels[config.perServerSwitchModes[guildId]]);
+                this.log("Default channel for '" + guildName + "' switch mode set to '"+config.perServerSwitchModes[guildId]+"'.");
+                self.saveSettings();
+            };
+
+            // Generate the switch mode element
+            let activeSwitchModeItem = null;
+            let generateSwitchModeToggle = function(channelToggleItem) {
+                let switchMode = config.perServerSwitchModes[guildId];
+                if (switchMode == null)
+                    switchMode = "inherit";
+
+                let item = $('<div class="'+self.normals.item+' '+self.normals.itemToggle+' dc-inheritModeToggle"><div class="'+self.normals.label
+                    +'">Switch When: <span class="dc-switchModeDescription">'
+                    + self.labels[switchMode]
+                    + '</span></div></div></div>')[0];
+
+                if (channelToggleItem.nextSibling)
+                    channelToggleItem.parentNode.insertBefore(item, channelToggleItem.nextSibling);
+                else
+                    channelToggleItem.parentNode.append(item);
+                    
+                activeSwitchModeItem = $('.dc-inheritModeToggle');
+                activeSwitchModeItem.click(switchModeToggleClick);
+            };
+            if (isDefaultChannel) generateSwitchModeToggle(defaultChannelToggle);
+
+            // Handle clicking default channel toggle
+            activeDefaultChannelToggle.click(e => {
+                if (config.defaultChannels[guildId] == channelId) {
+                    delete config.defaultChannels[guildId];
+                    delete config.perServerSwitchModes[guildId];
+                    activeSwitchModeItem.remove();
+                    activeDefaultChannelToggle.find("input").prop("checked", false);
                     this.log("Default channel for '" + guildName + "' unset.");
                 }
                 else {
-                    set.defaultChannels[guildId] = channelId;
-                    newItem.find("input").prop("checked", true);
+                    config.defaultChannels[guildId] = channelId;
+                    config.perServerSwitchModes[guildId] = "inherit";
+                    generateSwitchModeToggle(defaultChannelToggle);
+                    activeDefaultChannelToggle.find("input").prop("checked", true);
                     this.log("Default channel for '" + guildName + "' set to '#" + channelName + "'.");
                 }
                 self.saveSettings();
@@ -178,7 +232,9 @@ class DefaultChannels {
         if (ids.guildId == null) return; // Not a server
         
         let config = this.settings.DefaultChannels;
-        if ((config.firstSwitchOnly && this.updatedServers[ids.guildId]) // Already performed the default channel switch
+        let switchMode = config.perServerSwitchModes[ids.guildId];
+        if (((((switchMode == "inherit" || switchMode == null) && config.firstSwitchOnly)
+            || switchMode == "firstOnly") && this.updatedServers[ids.guildId]) // Already performed the default channel switch
         || !config.defaultChannels[ids.guildId] // No default channel set
         || DiscordModules.SelectedChannelStore.getChannelId() == config.defaultChannels[ids.guildId]) // Already in the default channel
             return;
