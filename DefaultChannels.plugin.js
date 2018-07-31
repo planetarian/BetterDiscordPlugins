@@ -211,7 +211,7 @@ class DefaultChannels {
                 }
                 self.saveSettings();
             });
-		}
+        }
     }
 
     // Called when a message is received
