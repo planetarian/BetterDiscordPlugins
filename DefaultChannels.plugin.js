@@ -5,7 +5,7 @@ class DefaultChannels {
     getDescription() {
         return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -87,8 +87,9 @@ class DefaultChannels {
         }
 
         // Update channel context menu
-		if (element.classList && (element.classList.contains("contextMenu-HLZMGh"))) {
+        if (element.classList && (element.classList.contains("contextMenu-HLZMGh"))) {
             let menuItems = $(element).find('.da-item');
+            // Attempt to find the name of the channel we rightclicked by looking for the 'Mute #channel' item
             let preItem = null;
             let channelName = null;
             for (var i = 0; i < menuItems.length && !preItem; i++) {
@@ -103,7 +104,8 @@ class DefaultChannels {
             }
             if (!preItem) return; // Not a channel
 
-            let ids = this.getGuildChannelIds();
+            // Get the ID for the channel name we found
+            let ids = this.getGuildLinkIds();
             let guildId = ids.guildId;
             let channels = DiscordModules.GuildChannelsStore.getChannels(guildId)[0];
             let channelId = null;
@@ -111,6 +113,7 @@ class DefaultChannels {
                 let channel = channels[c].channel;
                 if (channel.name == channelName) {
                     channelId = channel.id;
+                    break;
                 }
             }
 
@@ -120,6 +123,7 @@ class DefaultChannels {
                 + (this.settings.DefaultChannels.defaultChannels[guildId] == channelId ? ' checked' : '')
                 + '><span></span></div><span></span></div></div></div>')[0];
 
+            // Add the toggle menuitem, preferably right below the 'Mute #channel' item, but otherwise put it wherever
             if (preItem) {
                 if (preItem.nextSibling)
                     preItem.parentNode.insertBefore(newItem, preItem.nextSibling);
@@ -127,9 +131,10 @@ class DefaultChannels {
                     preItem.parentNode.append(newItem);
             }
             else {
-                element.children[0].append(newItem);
+                element.children[0].append(newItem); // Theoretically should never happen?
             }
 
+            // Handle the click event -- set the default channel and save the settings to file
             let self = this;
             newItem = $('.dc-toggle');
             newItem.click(e => {
@@ -163,21 +168,23 @@ class DefaultChannels {
     }
 
     update() {
-        let ids = this.getGuildChannelIds();
+        let ids = this.getGuildLinkIds();
         if (ids.guildId == null) return; // Not a server
-        //this.log("Switched to guild: '" + ids.guildId + "', channel '" + ids.channelId + "'.");
+        
         let config = this.settings.DefaultChannels;
-        if ((config.firstSwitchOnly && this.updatedServers[ids.guildId])
-        || !config.defaultChannels[ids.guildId]
-        || DiscordModules.SelectedChannelStore.getChannelId() == config.defaultChannels[ids.guildId])
-            return; // Already set initial channel
+        if ((config.firstSwitchOnly && this.updatedServers[ids.guildId]) // Already performed the default channel switch
+        || !config.defaultChannels[ids.guildId] // No default channel set
+        || DiscordModules.SelectedChannelStore.getChannelId() == config.defaultChannels[ids.guildId]) // Already in the default channel
+            return;
+        
         this.updatedServers[ids.guildId] = true;
         DiscordModules.NavigationUtils
-            .transitionTo("/channels/" + ids.guildId + "/" + this.settings.DefaultChannels.defaultChannels[ids.guildId]);
+            .transitionTo("/channels/" + ids.guildId + "/" + config.defaultChannels[ids.guildId]);
         this.log("Switched to default channel on '" + DiscordModules.GuildStore.getGuild(ids.guildId).name + "'");
     }
 
-    getGuildChannelIds() {
+    // Get the guild/channel ids from the guild icon link. Note that the channel id returned is independent of the current channel.
+    getGuildLinkIds() {
         let guildLink = $('div.guild.selected a').attr('href');
         let match = /\/channels\/(\d+)\/(\d+)/.exec(guildLink);
         return {
