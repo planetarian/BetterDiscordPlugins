@@ -5,7 +5,7 @@ Plugins I've written for BetterDiscord
 Fixes BD's third-party emotes so that FFZ emotes have priority over BTTV ones, since the BTTV versions are often broken or just plain inferior.
 
 ## DefaultChannels
-Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for checking announcement channels before moving elsewhere.
+Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.
 
 ## InlineJsEval
 Allows you to execute JavaScript directly from within the textbox by typing e.g. `eval(1 + 1)` and pressing tab after the closing parenthesis. Drive responsibly.
