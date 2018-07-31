@@ -5,7 +5,7 @@ class DefaultChannels {
     getDescription() {
         return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -17,6 +17,11 @@ class DefaultChannels {
         };
         this.settings = this.defaultSettings;
         this.updatedServers = [];
+        this.normals = {
+            item: "item-1Yvehc",
+            itemToggle: "itemToggle-S7XGOQ",
+            label: "label-JWQiNe"
+        };
     }
 
     getSettingsPanel() {
@@ -119,7 +124,8 @@ class DefaultChannels {
 
             let guildName = DiscordModules.GuildStore.getGuild(guildId).name;
 
-            let newItem = $('<div class="item-1Yvehc itemToggle-S7XGOQ dc-toggle"><div class="label-JWQiNe">Default Channel</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"'
+            let newItem = $('<div class="'+this.normals.item+' '+this.normals.itemToggle+' dc-toggle"><div class="'+this.normals.label
+                +'">Default Channel</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"'
                 + (this.settings.DefaultChannels.defaultChannels[guildId] == channelId ? ' checked' : '')
                 + '><span></span></div><span></span></div></div></div>')[0];
 
