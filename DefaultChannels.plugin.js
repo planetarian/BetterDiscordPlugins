@@ -5,7 +5,7 @@ class DefaultChannels {
     getDescription() {
         return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.6"; }
+    getVersion() { return "0.0.7"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -21,17 +21,19 @@ class DefaultChannels {
         this.normals = {
             item: "item-1Yvehc",
             itemToggle: "itemToggle-S7XGOQ",
-            label: "label-JWQiNe"
+            label: "label-JWQiNe",
+            guild: "guild-1EfMGQ",
+            guildSelected: "selected-ML3OIq",
+            textChannelsContainer: "container-1",
+            channels: "channels-Ie2l6A",
+            channelName: "name-3M0b8v",
+            channelNameUnreadText: "nameUnreadText-DfkrI4"
         };
         this.labels = {
             inherit: "Use global",
             firstOnly: "First opened",
-            always: "Always"
-        };
-        this.checkModes = {
-            inherit: " indeterminate",
-            firstOnly: " checked",
-            always: ""
+            always: "Always",
+            unread: "Unread"
         };
     }
 
@@ -162,6 +164,8 @@ class DefaultChannels {
                 if (config.perServerSwitchModes[guildId] == "firstOnly")
                     config.perServerSwitchModes[guildId] = "always";
                 else if (config.perServerSwitchModes[guildId] == "always")
+                    config.perServerSwitchModes[guildId] = "unread";
+                else if (config.perServerSwitchModes[guildId] == "unread")
                     config.perServerSwitchModes[guildId] = "inherit";
                 else // inherit/null
                     config.perServerSwitchModes[guildId] = "firstOnly";
@@ -233,21 +237,29 @@ class DefaultChannels {
         
         let config = this.settings.DefaultChannels;
         let switchMode = config.perServerSwitchModes[ids.guildId];
+        let channelId = config.defaultChannels[ids.guildId];
+        if (!channelId) return; // No default channel set
+
+        let channelName = DiscordModules.ChannelStore.getChannel(channelId).name;
+        let el = $('div.'+this.normals['channels']+' .'+this.normals['channelName']+':contains("'+channelName+'")')[0];
+        let hasUnread = el && el.classList && el.classList.contains(this.normals['channelNameUnreadText']);
+        
+
         if (((((switchMode == "inherit" || switchMode == null) && config.firstSwitchOnly)
             || switchMode == "firstOnly") && this.updatedServers[ids.guildId]) // Already performed the default channel switch
-        || !config.defaultChannels[ids.guildId] // No default channel set
-        || DiscordModules.SelectedChannelStore.getChannelId() == config.defaultChannels[ids.guildId]) // Already in the default channel
+        || (switchMode == "unread" && !hasUnread) // No new messages
+        || DiscordModules.SelectedChannelStore.getChannelId() == channelId) // Already in the default channel
             return;
         
         this.updatedServers[ids.guildId] = true;
         DiscordModules.NavigationUtils
-            .transitionTo("/channels/" + ids.guildId + "/" + config.defaultChannels[ids.guildId]);
+            .transitionTo("/channels/" + ids.guildId + "/" + channelId);
         this.log("Switched to default channel on '" + DiscordModules.GuildStore.getGuild(ids.guildId).name + "'");
     }
 
     // Get the guild/channel ids from the guild icon link. Note that the channel id returned is independent of the current channel.
     getGuildLinkIds() {
-        let guildLink = $('div.guild.selected a').attr('href');
+        let guildLink = $('div.'+this.normals['guild']+'.'+this.normals['guildSelected']+' a').attr('href');
         let match = /\/channels\/(\d+)\/(\d+)/.exec(guildLink);
         return {
             guildId:match==null?null:match[1],
