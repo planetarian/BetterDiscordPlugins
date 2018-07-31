@@ -3,9 +3,9 @@
 class DefaultChannels {
     getName() { return "DefaultChannels"; }
     getDescription() {
-        return "Allows you to specify a channel which is selected automatically when you switch to a given server. Can be configured to take effect on first switch or every switch.";
+        return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
