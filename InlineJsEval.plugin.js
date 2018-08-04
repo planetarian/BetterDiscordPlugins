@@ -3,9 +3,10 @@
 class InlineJsEval {
     getName() { return "InlineJsEval"; }
     getDescription() {
-        return "JavaScript eval() plugin -- type e.g. eval(1 + 1) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.";
+        return "JavaScript eval() plugin -- type e.g. eval(1 + 1) and press tab to execute the eval. Basically an inline JS console, more or less. Drive responsibly.\r\n"
+        + "<h3>Note: 'Normalize Classes' option must be enabled for this plugin to function.</h3>";
     }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>" + this.getName() + " Settings</h3>"; }
 
@@ -34,7 +35,7 @@ class InlineJsEval {
 
     // Called when the plugin is deactivated
     stop() {
-        $('.chat textarea').off('keydown.js_eval');
+        $('.da-chat textarea').off('keydown.js_eval');
         this.log('Stopped');
     }
 
@@ -47,7 +48,7 @@ class InlineJsEval {
 
     observer({ addedNodes, removedNodes }) {
         if(addedNodes && addedNodes[0] && addedNodes[0].classList
-            && addedNodes[0].classList.contains('messages-wrapper')) {
+            && addedNodes[0].classList.contains('da-messagesWrapper')) {
             this.update();
         }
     }
@@ -65,7 +66,7 @@ class InlineJsEval {
     }
 
     update() {
-        let textArea = $('.chat textarea');
+        let textArea = $('.da-chat textarea');
         if (!textArea.length) return;
 
         let inputBox = textArea[0];
