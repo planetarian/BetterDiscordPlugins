@@ -3,13 +3,14 @@
 class Zalgo {
     getName() { return "Zalgo"; }
     getDescription() {
-        return "Zalgo text generation plugin -- write something {{like this}} to corrupt it " + this.getZalgo("like this",1,this.settings.Zalgo.corruptionAmount,this.settings.Zalgo.corruptionAmount) + "\r\n"
+        return "Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\n"
             + "You can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n"
-            + "    {{0.01:just a little corrupt}} -> " + this.getZalgo("just a little corrupt",1,0.01,0.01) + "\r\n"
+            + "    {{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\n"
             + "You can also ramp the corruption amount gradually:\r\n"
-            + "    {{r:start at zero and get more corrupted}} -> " + this.getZalgo("start at zero and get more corrupted",1,0,this.settings.Zalgo.corruptionAmount);
+            + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡\r\n"
+            + "<h3>Note: 'Normalize Classes' option must be enabled for this plugin to function.</h3>";
     }
-    getVersion() { return "0.0.6"; }
+    getVersion() { return "0.0.7"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -117,7 +118,7 @@ class Zalgo {
 
     // Called when the plugin is deactivated
     stop() {
-        $('.chat textarea').off('keydown.zalgo');
+        $('.da-chat textarea').off('keydown.zalgo');
         this.log('Stopped');
     }
 
@@ -130,7 +131,7 @@ class Zalgo {
 
     observer({ addedNodes, removedNodes }) {
         if(addedNodes && addedNodes[0] && addedNodes[0].classList
-            && addedNodes[0].classList.contains('messages-wrapper')) {
+            && (addedNodes[0].classList.contains('da-messagesWrapper') || addedNodes[0].classList.contains('da-chat'))) {
             this.update();
         }
     }
@@ -149,7 +150,7 @@ class Zalgo {
     }
 
     update() {
-        let textArea = $('.chat textarea');
+        let textArea = $('.da-chat textarea');
         if (!textArea.length) return;
 
         let inputBox = textArea[0];
