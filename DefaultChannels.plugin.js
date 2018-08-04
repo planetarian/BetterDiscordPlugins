@@ -5,37 +5,60 @@ class DefaultChannels {
     getDescription() {
         return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.7"; }
+    getVersion() { return "0.0.9"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
-        this.defaultSettings = {
-            DefaultChannels: {
-                firstSwitchOnly: true,
-                defaultChannels: {},
-                perServerSwitchModes: {}
-            }
-        };
-        this.settings = this.defaultSettings;
         this.updatedServers = [];
-        this.normals = {
-            item: "item-1Yvehc",
-            itemToggle: "itemToggle-S7XGOQ",
+        this.classesDefault = {
             label: "label-JWQiNe",
             guild: "guild-1EfMGQ",
             guildSelected: "selected-ML3OIq",
-            textChannelsContainer: "container-1",
+            chat: "chat-3bRxxu",
+            searchBar: "searchBar-2_Yu-C",
             channels: "channels-Ie2l6A",
             channelName: "name-3M0b8v",
-            channelNameUnreadText: "nameUnreadText-DfkrI4"
+            channelNameUnreadText: "nameUnreadText-DfkrI4",
+            contextMenu: "contextMenu-HLZMGh",
+            item: "item-1Yvehc",
+            itemToggle: "itemToggle-S7XGOQ"
         };
+        this.classesNormalized = {
+            appMount: "da-appMount",
+            label: "da-label",
+            guild: this.classesDefault.guild,
+            guildSelected: this.classesDefault.guildSelected,
+            chat: "da-chat",
+            searchBar: "da-searchBar",
+            channels: "da-channels",
+            channelName: "da-name",
+            channelNameUnreadText: "da-nameUnreadText",
+            contextMenu: "da-contextMenu",
+            item: "da-item",
+            itemToggle: "da-itemToggle"
+        };
+        this.defaultSettings = {
+            DefaultChannels: {
+                globalSwitchMode: "firstOnly",
+                defaultChannels: {},
+                perServerSwitchModes: {},
+                useNormalizedClasses: $('.' + this.classesNormalized.appMount).length == 1 
+            }
+        };
+        this.settings = this.defaultSettings;
+        this.updateClasses();
         this.labels = {
-            inherit: "Use global",
-            firstOnly: "First opened",
+            inherit: "Use Global",
+            firstOnly: "First Open",
             always: "Always",
             unread: "Unread"
         };
     }
+
+    updateClasses() {
+        this.classes = this.settings.useNormalizedClasses ? this.classesNormalized : this.classesDefault
+    }
+
 
     getSettingsPanel() {
         var panel = $("<form>").addClass("form").css("width", "100%");
@@ -44,13 +67,16 @@ class DefaultChannels {
     }
 
     generateSettings(panel) {
+        let config = this.settings.DefaultChannels;
         new PluginSettings.ControlGroup("Settings", () => {
             this.saveSettings();
         }, {
             shown: true
         }).appendTo(panel).append(
             new PluginSettings.Checkbox("First switch only", "If enabled, will only switch to the default channel the first time you switch to its server after discord loads.",
-                this.settings.DefaultChannels.firstSwitchOnly, (checked) => { this.settings.DefaultChannels.firstSwitchOnly = checked;})
+                config.globalSwitchMode == "firstOnly" || config.firstSwitchOnly, (checked) => { config.firstSwitchOnly = checked; if (checked) config.globalSwitchMode = "firstOnly";}),
+            new PluginSettings.Checkbox("Use normalized classes", "If enabled, will make use of BandagedBD's 'Normalize Classes' feature where possible. Should make the plugin more resilient to Discord updates.",
+                config.useNormalizedClasses, (checked) => config.useNormalizedClasses = checked)
         );
     }
     
@@ -60,6 +86,7 @@ class DefaultChannels {
 
     saveSettings() {
         PluginUtilities.saveSettings(this.getName(), this.settings);
+        this.updateClasses();
     }
 
     // Called when the plugin is loaded in to memory
@@ -96,17 +123,18 @@ class DefaultChannels {
     }
 
     observer({ addedNodes, removedNodes }) {
-        if (!addedNodes || !addedNodes[0]) return;
+        if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
         let element = addedNodes[0];
 
         // Detect server switch
-        if (element.classList && (element.classList.contains('da-searchBar') || element.classList.contains('da-chat'))) {
+        if (element.classList.contains(this.classes.searchBar) || element.classList.contains(this.classes.chat)) {
             this.update();
         }
 
+        
         // Update channel context menu
-        if (element.classList && (element.classList.contains('da-contextMenu'))) {
-            let menuItems = $(element).find('.da-item');
+        if (element.classList.contains(this.classes.contextMenu)) {
+            let menuItems = $(element).find('.' + this.classes.item);
             // Attempt to find the name of the channel we rightclicked by looking for the 'Mute #channel' item
             let preItem = null;
             let channelName = null;
@@ -139,7 +167,7 @@ class DefaultChannels {
             let config = this.settings.DefaultChannels;
 
             let isDefaultChannel = config.defaultChannels[guildId] == channelId;
-            let defaultChannelToggle = $('<div class="'+this.normals.item+' '+this.normals.itemToggle+' dc-defaultChannelToggle"><div class="'+this.normals.label
+            let defaultChannelToggle = $('<div class="'+this.classesDefault.item+' '+this.classesDefault.itemToggle+' dc-defaultChannelToggle"><div class="'+this.classesDefault.label
                 +'">Default Channel</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"'
                 + (isDefaultChannel ? ' checked' : '')
                 + '><span></span></div><span></span></div></div></div>')[0];
@@ -182,8 +210,8 @@ class DefaultChannels {
                 if (switchMode == null)
                     switchMode = "inherit";
 
-                let item = $('<div class="'+self.normals.item+' '+self.normals.itemToggle+' dc-inheritModeToggle"><div class="'+self.normals.label
-                    +'">Switch When: <span class="dc-switchModeDescription">'
+                let item = $('<div class="'+self.classesDefault.item+' '+self.classesDefault.itemToggle+' dc-inheritModeToggle"><div class="'+self.classesDefault.label
+                    +'">Default When: <span class="dc-switchModeDescription">'
                     + self.labels[switchMode]
                     + '</span></div></div></div>')[0];
 
@@ -241,8 +269,8 @@ class DefaultChannels {
         if (!channelId) return; // No default channel set
 
         let channelName = DiscordModules.ChannelStore.getChannel(channelId).name;
-        let el = $('div.'+this.normals['channels']+' .'+this.normals['channelName']+':contains("'+channelName+'")')[0];
-        let hasUnread = el && el.classList && el.classList.contains(this.normals['channelNameUnreadText']);
+        let el = $('div.'+this.classes.channels+' .'+this.classes.channelName+':contains("'+channelName+'")')[0];
+        let hasUnread = el && el.classList && el.classList.contains(this.classes.channelNameUnreadText);
         
 
         if (((((switchMode == "inherit" || switchMode == null) && config.firstSwitchOnly)
@@ -259,7 +287,7 @@ class DefaultChannels {
 
     // Get the guild/channel ids from the guild icon link. Note that the channel id returned is independent of the current channel.
     getGuildLinkIds() {
-        let guildLink = $('div.'+this.normals['guild']+'.'+this.normals['guildSelected']+' a').attr('href');
+        let guildLink = $('div.'+this.classes.guild+'.'+this.classes.guildSelected+' a').attr('href');
         let match = /\/channels\/(\d+)\/(\d+)/.exec(guildLink);
         return {
             guildId:match==null?null:match[1],
