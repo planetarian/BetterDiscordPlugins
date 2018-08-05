@@ -7,10 +7,9 @@ class Zalgo {
             + "You can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n"
             + "    {{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\n"
             + "You can also ramp the corruption amount gradually:\r\n"
-            + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡\r\n"
-            + "<h3>Note: 'Normalize Classes' option must be enabled for this plugin to function.</h3>";
+            + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡";
     }
-    getVersion() { return "0.0.7"; }
+    getVersion() { return "0.0.8"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -49,16 +48,35 @@ class Zalgo {
             '\u034e', /*     ͎     */    '\u0353', /*     ͓     */    '\u0354', /*     ͔     */    '\u0355', /*     ͕     */
             '\u0356', /*     ͖     */    '\u0359', /*     ͙     */    '\u035a', /*     ͚     */    '\u0323'  /*     ̣     */
         ];
+        this.classesDefault = {
+            chat: "chat-3bRxxu",
+            searchBar: "searchBar-2_Yu-C",
+            messagesWrapper: "messagesWrapper-3lZDfY"
+        };
+        this.classesNormalized = {
+            appMount: "da-appMount",
+            chat: "da-chat",
+            searchBar: "da-searchBar",
+            messagesWrapper: "da-messagesWrapper"
+        };
         this.defaultSettings = {
             Zalgo: {
                 corruptionAmount: 1.0,
                 rampEnd: 0.75,
                 corruptUp: false, // hidden
                 corruptMid: true,
-                corruptDown: false // hidden
+                corruptDown: false, // hidden
+                useNormalizedClasses: global.bdSettings && global.bdSettings.settings["fork-ps-4"]
             }
         };
         this.settings = this.defaultSettings;
+        this.updateClasses();
+    }
+
+    updateClasses() {
+        this.classes = global.bdSettings && global.bdSettings.settings["fork-ps-4"] && this.settings.Zalgo.useNormalizedClasses
+            ? this.classesNormalized
+            : this.classesDefault;
     }
 
     getSettingsPanel() {
@@ -68,22 +86,25 @@ class Zalgo {
     }
 
     generateSettings(panel) {
+        let config = this.settings.Zalgo;
         new PluginSettings.ControlGroup("Settings", () => {
             this.saveSettings();
         }, {
             shown: true
         }).appendTo(panel).append(
             new PluginSettings.Slider("Corruption amount", "adjust how corrupted your text becomes", 0.05, 3.0, 0.05,
-                this.settings.Zalgo.corruptionAmount, (val) => { this.settings.Zalgo.corruptionAmount = val;})
+                config.corruptionAmount, (val) => { config.corruptionAmount = val;})
             , new PluginSettings.Slider("Ramp end position", "adjust the endpoint of the ramp-in when using the `r` prefix", 0.05, 1.0, 0.05,
-                this.settings.Zalgo.rampEnd, (val) => { this.settings.Zalgo.rampEnd = val;})
+                config.rampEnd, (val) => { config.rampEnd = val;})
             // Changing these to a single mid/lower option because discord screws it up when you do multiple at once
             //, new PluginSettings.Checkbox("Corrupt upward", "",
-                //this.settings.Zalgo.corruptUp, (checked) => { this.settings.Zalgo.corruptUp = checked;}),
+                //config.corruptUp, (checked) => { config.corruptUp = checked;}),
             , new PluginSettings.Checkbox("Obscure text", "determines whether zalgo characters are placed over the text or beneath it",
-                this.settings.Zalgo.corruptMid, (checked) => { this.settings.Zalgo.corruptMid = checked;})
+                config.corruptMid, (checked) => { config.corruptMid = checked;})
             //, new PluginSettings.Checkbox("Corrupt downward", "",
-                //this.settings.Zalgo.corruptDown, (checked) => { this.settings.Zalgo.corruptDown = checked;})
+                //config.corruptDown, (checked) => { config.corruptDown = checked;})
+            , new PluginSettings.Checkbox("Use normalized classes", "If enabled, will make use of BandagedBD's 'Normalize Classes' feature where possible. Should make the plugin more resilient to Discord updates.",
+            config.useNormalizedClasses, (checked) => config.useNormalizedClasses = checked)
         );
     }
     
@@ -118,7 +139,7 @@ class Zalgo {
 
     // Called when the plugin is deactivated
     stop() {
-        $('.da-chat textarea').off('keydown.zalgo');
+        $('.' + this.classes.chat + ' textarea').off('keydown.zalgo');
         this.log('Stopped');
     }
 
@@ -130,8 +151,12 @@ class Zalgo {
     }
 
     observer({ addedNodes, removedNodes }) {
-        if(addedNodes && addedNodes[0] && addedNodes[0].classList
-            && (addedNodes[0].classList.contains('da-messagesWrapper') || addedNodes[0].classList.contains('da-chat'))) {
+        if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
+        let cl = addedNodes[0].classList;
+
+        if (cl.contains(this.classes.searchBar)
+            || cl.contains(this.classes.chat)
+            || cl.contains(this.classes.chat)) {
             this.update();
         }
     }
@@ -150,7 +175,7 @@ class Zalgo {
     }
 
     update() {
-        let textArea = $('.da-chat textarea');
+        let textArea = $('.' + this.classes.chat + ' textarea');
         if (!textArea.length) return;
 
         let inputBox = textArea[0];
@@ -164,7 +189,6 @@ class Zalgo {
                 // If we pressed Tab, perform corruption only if the cursor is right after the closing braces.
                 if (e.which == 9 && !value.substring(0, inputBox.selectionEnd).endsWith('}}'))
                     return;
-                
                 // Markup format:
                 // {{<r><rampEnd>,<startAmount>-<endAmount>:text}}
                 // r: enable ramping
@@ -221,9 +245,10 @@ class Zalgo {
         //============================================================
 
         // Get saved options for corruption directions
-        let optUp = this.settings.Zalgo.corruptUp;
-        let optMid = this.settings.Zalgo.corruptMid;
-        let optDown = this.settings.Zalgo.corruptDown || (!optUp && !optMid);
+        let config = this.settings.Zalgo;
+        let optUp = config.corruptUp;
+        let optMid = config.corruptMid;
+        let optDown = config.corruptDown || (!optUp && !optMid);
         
         let newTxt = '';
 
