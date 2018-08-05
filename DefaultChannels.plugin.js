@@ -7,7 +7,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.10"; }
+    getVersion() { return "0.0.10a"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -44,11 +44,10 @@ class DefaultChannels {
                 globalSwitchMode: "firstOnly",
                 defaultChannels: {},
                 perServerSwitchModes: {},
-                useNormalizedClasses: global.bdSettings && global.bdSettings.settings["fork-ps-4"]
+                useNormalizedClasses: true
             }
         };
         this.settings = this.defaultSettings;
-        this.updateClasses();
         this.labels = {
             inherit: "Use Global",
             firstOnly: "First Open",
@@ -58,9 +57,11 @@ class DefaultChannels {
     }
 
     updateClasses() {
-        this.classes = global.bdSettings && global.bdSettings.settings["fork-ps-4"] && this.settings.DefaultChannels.useNormalizedClasses
-         ? this.classesNormalized
-          : this.classesDefault;
+        this.classes = (global.bdSettings
+            && global.bdSettings.settings["fork-ps-4"]
+            && this.settings.DefaultChannels.useNormalizedClasses)
+            ? this.classesNormalized
+            : this.classesDefault;
     }
 
 
@@ -86,6 +87,7 @@ class DefaultChannels {
     
     loadSettings() {
         this.settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
+        this.updateClasses();
     }
 
     saveSettings() {
@@ -127,7 +129,7 @@ class DefaultChannels {
     }
 
     observer({ addedNodes, removedNodes }) {
-        if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
+        if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
         let element = addedNodes[0];
 
         // Detect server switch
@@ -257,10 +259,10 @@ class DefaultChannels {
     onSwitch() {}
     
     initialize(){
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/DefaultChannels.plugin.js");
         this.loadSettings();
         this.update();
+        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/DefaultChannels.plugin.js");
     }
 
     update() {
