@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡";
     }
-    getVersion() { return "0.0.9"; }
+    getVersion() { return "0.0.9a"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -66,15 +66,16 @@ class Zalgo {
                 corruptUp: false, // hidden
                 corruptMid: true,
                 corruptDown: false, // hidden
-                useNormalizedClasses: global.bdSettings && global.bdSettings.settings["fork-ps-4"]
+                useNormalizedClasses: true
             }
         };
         this.settings = this.defaultSettings;
-        this.updateClasses();
     }
 
     updateClasses() {
-        this.classes = global.bdSettings && global.bdSettings.settings["fork-ps-4"] && this.settings.Zalgo.useNormalizedClasses
+        this.classes = (global.bdSettings
+            && global.bdSettings.settings["fork-ps-4"]
+            && this.settings.Zalgo.useNormalizedClasses)
             ? this.classesNormalized
             : this.classesDefault;
     }
@@ -110,10 +111,12 @@ class Zalgo {
     
     loadSettings() {
         this.settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
+        this.updateClasses();
     }
 
     saveSettings() {
         PluginUtilities.saveSettings(this.getName(), this.settings);
+        this.updateClasses();
     }
 
     // Called when the plugin is loaded in to memory
@@ -151,7 +154,7 @@ class Zalgo {
     }
 
     observer({ addedNodes, removedNodes }) {
-        if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
+        if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
         let cl = addedNodes[0].classList;
 
         if (cl.contains(this.classes.searchBar)
