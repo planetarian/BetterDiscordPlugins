@@ -3,9 +3,11 @@
 class DefaultChannels {
     getName() { return "DefaultChannels"; }
     getDescription() {
-        return "Allows you to force discord to switch to a specific channel the first time (or every time) you switch to a particular server after launching discord. Good for e.g. checking announcement channels before moving elsewhere.";
+        return "Allows you to force discord to switch to a specific channel the first time (or every time) "
+        + "you switch to a particular server after launching discord. "
+        + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.9"; }
+    getVersion() { return "0.0.10"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -42,7 +44,7 @@ class DefaultChannels {
                 globalSwitchMode: "firstOnly",
                 defaultChannels: {},
                 perServerSwitchModes: {},
-                useNormalizedClasses: $('.' + this.classesNormalized.appMount).length == 1 
+                useNormalizedClasses: global.bdSettings && global.bdSettings.settings["fork-ps-4"]
             }
         };
         this.settings = this.defaultSettings;
@@ -56,7 +58,9 @@ class DefaultChannels {
     }
 
     updateClasses() {
-        this.classes = this.settings.useNormalizedClasses ? this.classesNormalized : this.classesDefault
+        this.classes = global.bdSettings && global.bdSettings.settings["fork-ps-4"] && this.settings.DefaultChannels.useNormalizedClasses
+         ? this.classesNormalized
+          : this.classesDefault;
     }
 
 
