@@ -7,7 +7,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.10a"; }
+    getVersion() { return "0.0.11"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -39,6 +39,7 @@ class DefaultChannels {
             item: "da-item",
             itemToggle: "da-itemToggle"
         };
+        this.classes = this.classesDefault;
         this.defaultSettings = {
             DefaultChannels: {
                 globalSwitchMode: "firstOnly",
