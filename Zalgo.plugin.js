@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡";
     }
-    getVersion() { return "0.0.9a"; }
+    getVersion() { return "0.0.10"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -59,6 +59,7 @@ class Zalgo {
             searchBar: "da-searchBar",
             messagesWrapper: "da-messagesWrapper"
         };
+        this.classes = this.classesDefault;
         this.defaultSettings = {
             Zalgo: {
                 corruptionAmount: 1.0,
