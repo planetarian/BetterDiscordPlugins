@@ -7,7 +7,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.12"; }
+    getVersion() { return "0.0.13"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -56,16 +56,6 @@ class DefaultChannels {
         };
     }
 
-    updateClasses() {
-        this.classes = this.settings.defaultChannels.useNormalizedClasses;
-        /*
-        this.classes = (global.bdSettings
-            && global.bdSettings.settings["fork-ps-4"]
-            && this.settings.DefaultChannels.useNormalizedClasses)
-            ? this.classesNormalized
-            : this.classesDefault;
-        */
-    }
 
 
     getSettingsPanel() {
@@ -87,15 +77,18 @@ class DefaultChannels {
                 config.useNormalizedClasses, (checked) => config.useNormalizedClasses = checked)
         );
     }
-    
-    loadSettings() {
-        this.settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
-        this.updateClasses();
-    }
 
-    saveSettings() {
-        PluginUtilities.saveSettings(this.getName(), this.settings);
-        this.updateClasses();
+    updateClasses() {
+        this.classes = this.settings.DefaultChannels.useNormalizedClasses
+        ? this.classesNormalized
+        : this.classesDefault;
+        /*
+        this.classes = (global.bdSettings
+            && global.bdSettings.settings["fork-ps-4"]
+            && this.settings.DefaultChannels.useNormalizedClasses)
+            ? this.classesNormalized
+            : this.classesDefault;
+        */
     }
 
     // Called when the plugin is loaded in to memory
@@ -103,6 +96,7 @@ class DefaultChannels {
 
     // Called when the plugin is activated (including after reloads)
     start() {
+        this.log('Starting');
         let libraryScript = document.getElementById('zeresLibraryScript');
         if (!libraryScript || (window.ZeresLibrary && window.ZeresLibrary.isOutdated)) {
             if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
@@ -114,9 +108,39 @@ class DefaultChannels {
         }
 
         if (window.ZeresLibrary) this.initialize();
-        else libraryScript.addEventListener("load", () => { this.initialize(); });
+        else libraryScript.addEventListener("load", () => { this.log('zeres load event'); this.initialize(); });
         
         this.log('Started');
+    }
+    
+    initialize(){
+        this.log('Initializing');
+        this.loadSettings();
+        this.update();
+        this.initialized = true;
+        this.log('Initialized');
+        if (this.queuedNodes && this.queuedNodes.length > 0) {
+            let nodes = this.queuedNodes;
+            for (var i = 0; i < nodes.length; i++) {
+                this.observer(nodes);
+            }
+            this.queuedNodes = null;
+            this.log('Queue processed');
+        }
+        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/DefaultChannels.plugin.js");
+    }
+    
+    loadSettings() {
+        this.settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
+        this.log('Settings loaded');
+        this.updateClasses();
+        this.log('Classes updated');
+    }
+
+    saveSettings() {
+        PluginUtilities.saveSettings(this.getName(), this.settings);
+        this.updateClasses();
     }
 
     // Called when the plugin is deactivated
@@ -131,16 +155,58 @@ class DefaultChannels {
             'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
     }
 
+    update() {
+        let ids = this.getGuildLinkIds();
+        if (ids.guildId == null) return; // Not a server
+
+        let config = this.settings.DefaultChannels;
+        let switchMode = config.perServerSwitchModes[ids.guildId];
+        let channelId = config.defaultChannels[ids.guildId];
+        if (!channelId) return; // No default channel set
+
+        let channelName = DiscordModules.ChannelStore.getChannel(channelId).name;
+        let el = $('div.'+this.classes.channels+' .'+this.classes.channelName+':contains("'+channelName+'")')[0];
+        let hasUnread = el && el.classList && el.classList.contains(this.classes.channelNameUnreadText);
+        
+
+        if (((((switchMode == "inherit" || switchMode == null) && config.firstSwitchOnly)
+            || switchMode == "firstOnly") && this.updatedServers[ids.guildId]) // Already performed the default channel switch
+        || (switchMode == "unread" && !hasUnread) // No new messages
+        || DiscordModules.SelectedChannelStore.getChannelId() == channelId) // Already in the default channel
+            return;
+        
+        this.updatedServers[ids.guildId] = true;
+        DiscordModules.NavigationUtils
+            .transitionTo("/channels/" + ids.guildId + "/" + channelId);
+        this.log("Switched to default channel on '" + DiscordModules.GuildStore.getGuild(ids.guildId).name + "'");
+    }
+
     observer({ addedNodes, removedNodes }) {
         if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
         let element = addedNodes[0];
+
+        if (this.pluginError) return;
+
+        if (!this.initialized) {
+            if (this.queuedNodes && this.queuedNodes.length && this.queuedNodes.length > 20)
+            {
+                this.log('Looks like plugin was never initialized. bailing.');
+                this.pluginError = true;
+                return;
+            }
+            this.log('Not yet initialized; queueing ' + element);
+            let length = this.queuedNodes ? this.queuedNodes.length : 0;
+            if (length == 0)
+                this.queuedNodes = new Array();
+            this.queuedNodes[length] = element;
+            return;
+        }
 
         // Detect server switch
         if (element.classList.contains(this.classes.searchBar) || element.classList.contains(this.classes.chat)) {
             this.update();
         }
 
-        
         // Update channel context menu
         if (element.classList.contains(this.classes.contextMenu)) {
             let menuItems = $(element).find('.' + this.classes.item);
@@ -260,39 +326,6 @@ class DefaultChannels {
 
     // Called when a server or channel is switched
     onSwitch() {}
-    
-    initialize(){
-        this.loadSettings();
-        this.update();
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/DefaultChannels.plugin.js");
-    }
-
-    update() {
-        let ids = this.getGuildLinkIds();
-        if (ids.guildId == null) return; // Not a server
-        
-        let config = this.settings.DefaultChannels;
-        let switchMode = config.perServerSwitchModes[ids.guildId];
-        let channelId = config.defaultChannels[ids.guildId];
-        if (!channelId) return; // No default channel set
-
-        let channelName = DiscordModules.ChannelStore.getChannel(channelId).name;
-        let el = $('div.'+this.classes.channels+' .'+this.classes.channelName+':contains("'+channelName+'")')[0];
-        let hasUnread = el && el.classList && el.classList.contains(this.classes.channelNameUnreadText);
-        
-
-        if (((((switchMode == "inherit" || switchMode == null) && config.firstSwitchOnly)
-            || switchMode == "firstOnly") && this.updatedServers[ids.guildId]) // Already performed the default channel switch
-        || (switchMode == "unread" && !hasUnread) // No new messages
-        || DiscordModules.SelectedChannelStore.getChannelId() == channelId) // Already in the default channel
-            return;
-        
-        this.updatedServers[ids.guildId] = true;
-        DiscordModules.NavigationUtils
-            .transitionTo("/channels/" + ids.guildId + "/" + channelId);
-        this.log("Switched to default channel on '" + DiscordModules.GuildStore.getGuild(ids.guildId).name + "'");
-    }
 
     // Get the guild/channel ids from the guild icon link. Note that the channel id returned is independent of the current channel.
     getGuildLinkIds() {
