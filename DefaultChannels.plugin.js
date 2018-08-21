@@ -7,7 +7,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.13"; }
+    getVersion() { return "0.0.13a"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -188,10 +188,11 @@ class DefaultChannels {
         if (this.pluginError) return;
 
         if (!this.initialized) {
-            if (this.queuedNodes && this.queuedNodes.length && this.queuedNodes.length > 20)
+            if (this.queuedNodes && this.queuedNodes.length && this.queuedNodes.length > 100)
             {
                 this.log('Looks like plugin was never initialized. bailing.');
                 this.pluginError = true;
+                this.queuedNodes = null;
                 return;
             }
             this.log('Not yet initialized; queueing ' + element);
@@ -207,8 +208,10 @@ class DefaultChannels {
             this.update();
         }
 
+        console.log(element.classList);
         // Update channel context menu
         if (element.classList.contains(this.classes.contextMenu)) {
+            this.log('Context menu opened');
             let menuItems = $(element).find('.' + this.classes.item);
             // Attempt to find the name of the channel we rightclicked by looking for the 'Mute #channel' item
             let preItem = null;
