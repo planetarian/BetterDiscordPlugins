@@ -7,7 +7,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.11"; }
+    getVersion() { return "0.0.12"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -48,7 +48,6 @@ class DefaultChannels {
                 useNormalizedClasses: true
             }
         };
-        this.settings = this.defaultSettings;
         this.labels = {
             inherit: "Use Global",
             firstOnly: "First Open",
@@ -58,11 +57,14 @@ class DefaultChannels {
     }
 
     updateClasses() {
+        this.classes = this.settings.defaultChannels.useNormalizedClasses;
+        /*
         this.classes = (global.bdSettings
             && global.bdSettings.settings["fork-ps-4"]
             && this.settings.DefaultChannels.useNormalizedClasses)
             ? this.classesNormalized
             : this.classesDefault;
+        */
     }
 
 
