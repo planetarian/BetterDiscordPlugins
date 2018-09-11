@@ -10,5 +10,8 @@ Allows you to force discord to switch to a specific channel the first time (or e
 ## InlineJsEval
 Allows you to execute JavaScript directly from within the textbox by typing e.g. `eval(1 + 1)` and pressing tab after the closing parenthesis. Drive responsibly.
 
+## Texty
+Let's you make loud, obnoxious emoji block text using markup e:like this:
+
 ## Zalgo
 Creates zalgo text l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏ (see http://eeemo.net/) by typing e.g. `{{some text here}}` and pressing tab or enter. Discord helps keep the corruption from extending beyond the line containing it, so no worries about obscuring unrelated text.
