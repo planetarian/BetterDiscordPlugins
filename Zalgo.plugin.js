@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡";
     }
-    getVersion() { return "0.0.10"; }
+    getVersion() { return "0.0.11"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -70,7 +70,6 @@ class Zalgo {
                 useNormalizedClasses: true
             }
         };
-        this.settings = this.defaultSettings;
     }
 
     updateClasses() {
@@ -125,6 +124,7 @@ class Zalgo {
 
     // Called when the plugin is activated (including after reloads)
     start() {
+        this.log('Starting');
         let libraryScript = document.getElementById('zeresLibraryScript');
         if (!libraryScript || (window.ZeresLibrary && window.ZeresLibrary.isOutdated)) {
             if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
@@ -135,10 +135,11 @@ class Zalgo {
             document.head.appendChild(libraryScript);
         }
 
+        this.initialized = false;
         if (window.ZeresLibrary) this.initialize();
         else libraryScript.addEventListener("load", () => { this.initialize(); });
-        
-        this.log('Started');
+        // Fallback in case load fails to fire (https://github.com/planetarian/BetterDiscordPlugins/issues/2)
+        setTimeout(this.initialize.bind(this), 5000);
     }
 
     // Called when the plugin is deactivated
@@ -151,6 +152,15 @@ class Zalgo {
 
     log(text) {
         return console.log(`[%c${this.getName()}%c] ${text}`,
+            'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+    }
+
+    error(text) {
+        try {
+            PluginUtilities.showToast(`[${this.getName()}] Error: ${text}`, {type:'error'});
+        }
+        catch (err) {}
+        return console.error(`[%c${this.getName()}%c] ${text}`,
             'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
     }
 
@@ -172,10 +182,20 @@ class Zalgo {
     onSwitch() {}
     
     initialize(){
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
+        if (this.initialized) return;
+        this.initialized = true;
+
         this.loadSettings();
         this.update();
+
+        try {
+            PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+                "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js");
+        }
+        catch (err) {
+            this.error("Couldn't check for updates.");
+        }
+        this.log("Initialized");
     }
 
     update() {
