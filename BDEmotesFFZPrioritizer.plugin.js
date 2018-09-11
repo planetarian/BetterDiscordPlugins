@@ -27,15 +27,17 @@
 class BDEmotesFFZPrioritizer {
     getName() { return "BDEmotesFFZPrioritizer"; }
     getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>BDEmotesFFZPrioritizer Settings</h3>"; }
 
     constructor() {
     }
     
-    load(){}
+    load(){ this.log("Loaded"); }
+
     start(){
+        this.log("Starting");
         let libraryScript = document.getElementById('zeresLibraryScript');
         if (!libraryScript || (window.ZeresLibrary && window.ZeresLibrary.isOutdated)) {
             if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
@@ -46,19 +48,49 @@ class BDEmotesFFZPrioritizer {
             document.head.appendChild(libraryScript);
         }
 
+        this.initialized = false;
         if (window.ZeresLibrary) this.initialize();
         else libraryScript.addEventListener("load", () => { this.initialize(); });
-        
+        // Fallback in case load fails to fire (https://github.com/planetarian/BetterDiscordPlugins/issues/2)
+        setTimeout(this.initialize.bind(this), 5000);
+
         this.fixEmotes();
+        
     }
 
     initialize(){
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-            "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/BDEmotesFFZPrioritizer.plugin.js");
+        if (this.initialized) return;
+        this.initialized = true;
+
+        try {
+            PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+                "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/BDEmotesFFZPrioritizer.plugin.js");
+        }
+        catch (err) {
+            this.error('')
+        }
+        this.log("Initialized");
     }
 
-    stop() { this.fixEmotes(false); }
-    unload() {}
+    stop() {
+        this.fixEmotes(false);
+        this.log("Stopped");
+    }
+    unload() { this.log("Unloaded"); }
+
+    log(text) {
+        return console.log(`[%c${this.getName()}%c] ${text}`,
+            'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+    }
+
+    error(text) {
+        try {
+            PluginUtilities.showToast(`[${this.getName()}] Error: ${text}`, {type:'error'});
+        }
+        catch (err) {}
+        return console.error(`[%c${this.getName()}%c] ${text}`,
+            'color: #F77; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+    }
 
     // check on switch, in case BD updates emotes file while client is running
     onSwitch() { this.fixEmotes(); }
@@ -70,6 +102,7 @@ class BDEmotesFFZPrioritizer {
             window.bdEmotes.FrankerFaceZ = window.bdEmotes.BTTV2;
             window.bdEmotes.BTTV2 = ffz;
         }
+        this.log("Emotes swapped" + (doFix ? "." : " back."));
     }
 
 }
