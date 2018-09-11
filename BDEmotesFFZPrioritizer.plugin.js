@@ -27,7 +27,7 @@
 class BDEmotesFFZPrioritizer {
     getName() { return "BDEmotesFFZPrioritizer"; }
     getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>BDEmotesFFZPrioritizer Settings</h3>"; }
 
@@ -67,7 +67,7 @@ class BDEmotesFFZPrioritizer {
                 "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/BDEmotesFFZPrioritizer.plugin.js");
         }
         catch (err) {
-            this.error('')
+            this.error("Couldn't update plugin");
         }
         this.log("Initialized");
     }
@@ -101,8 +101,8 @@ class BDEmotesFFZPrioritizer {
         if (ffz && ffz.Klappa && ffz.Klappa.startsWith('https://cdn.frankerfacez.com/') == doFix) {
             window.bdEmotes.FrankerFaceZ = window.bdEmotes.BTTV2;
             window.bdEmotes.BTTV2 = ffz;
+            this.log("Emotes swapped" + (doFix ? "." : " back."));
         }
-        this.log("Emotes swapped" + (doFix ? "." : " back."));
     }
 
 }
