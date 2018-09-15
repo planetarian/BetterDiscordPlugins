@@ -31,7 +31,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.14"; }
+    getVersion() { return "0.0.15"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -41,7 +41,7 @@ class DefaultChannels {
             guild: "guild-1EfMGQ",
             guildSelected: "selected-ML3OIq",
             chat: "chat-3bRxxu",
-            searchBar: "searchBar-2_Yu-C",
+            searchBar: "search-bar",
             channels: "channels-Ie2l6A",
             channelName: "name-3M0b8v",
             channelNameUnreadText: "nameUnreadText-DfkrI4",
