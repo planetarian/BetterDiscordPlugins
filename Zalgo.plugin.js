@@ -9,7 +9,7 @@ class Zalgo {
             + "You can also ramp the corruption amount gradually:\r\n"
             + "    {{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡";
     }
-    getVersion() { return "0.0.11"; }
+    getVersion() { return "0.0.12"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -73,8 +73,11 @@ class Zalgo {
     }
 
     updateClasses() {
-        this.classes = (global.bdSettings
-            && global.bdSettings.settings["fork-ps-4"]
+        let cfg = global.bdSettings;
+        let opt = "fork-ps-4";
+        this.classes = (cfg
+            && ((cfg.stable && cfg.stable.settings[opt])
+                || (cfg.settings && cfg.settings[opt]))
             && this.settings.Zalgo.useNormalizedClasses)
             ? this.classesNormalized
             : this.classesDefault;
@@ -186,7 +189,7 @@ class Zalgo {
         this.initialized = true;
 
         this.loadSettings();
-        this.update();
+        //this.update();
 
         try {
             PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
