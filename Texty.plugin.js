@@ -26,8 +26,8 @@
 
 class Texty {
     getName() { return "Texty"; }
-    getDescription() { return "Translates e[text] into emoji form."; }
-    getVersion() { return "0.0.1"; }
+    getDescription() { return "An obnoxious plugin that translates e[text] into emoji form."; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>Texty Settings</h3>"; }
 
@@ -83,7 +83,7 @@ class Texty {
             '#': { index: 0, emoji: ['hash']},
             '-': { index: 0, emoji: ['no_entry']},
             '*': { index: 0, emoji: ['asterisk']},
-            ' ': { index: 0, emoji: ['small_blue_diamond']}
+            //' ': { index: 0, emoji: ['small_blue_diamond']}
         };
         this.keys = Object.keys(this.matches);
         this.classesDefault = {
@@ -141,8 +141,8 @@ class Texty {
         this.update();
 
         try {
-            //PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
-                //"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Texty.plugin.js");
+            PluginUtilities.checkForUpdate(this.getName(), this.getVersion(),
+                "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Texty.plugin.js");
         }
         catch (err) {
             this.error("Couldn't update plugin.");
@@ -193,7 +193,7 @@ class Texty {
                 // Markup format:
                 // t:<text>:
                 // text: text to generate emoji from
-                let regex = /e:([\d\s\-a-zA-Z.*!?#]+):/g;
+                let regex = /e\[([\d\s\-a-zA-Z.*!?#]+)\]/g;
                 if (regex.test(value)) {
                     value = value.replace(regex, this.doTexty.bind(this));
                     if (value.length > 2000) {
@@ -239,6 +239,12 @@ class Texty {
                     continue;
                 }
             }
+            
+            if (char == ' ') {
+                output += '     ';
+                continue;
+            }
+
             let emoji = this.getEmoji(char, false);
             if (emoji.length > 0){
                 output += ':' + emoji + ': ';
