@@ -31,7 +31,7 @@ class DefaultChannels {
         + "you switch to a particular server after launching discord. "
         + "Good for e.g. checking announcement channels before moving elsewhere.";
     }
-    getVersion() { return "0.0.15"; }
+    getVersion() { return "0.0.16"; }
     getAuthor() { return "Chami"; }
 
     constructor() {
@@ -42,6 +42,7 @@ class DefaultChannels {
             guildSelected: "selected-ML3OIq",
             chat: "chat-3bRxxu",
             searchBar: "search-bar",
+            search: "search-l1Wz-Q",
             channels: "channels-Ie2l6A",
             channelName: "name-3M0b8v",
             channelNameUnreadText: "nameUnreadText-DfkrI4",
@@ -56,6 +57,7 @@ class DefaultChannels {
             guildSelected: this.classesDefault.guildSelected,
             chat: "da-chat",
             searchBar: "da-searchBar",
+            search: "da-search",
             channels: "da-channels",
             channelName: "da-name",
             channelNameUnreadText: "da-nameUnreadText",
@@ -220,9 +222,9 @@ class DefaultChannels {
     observer({ addedNodes, removedNodes }) {
         if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
         let element = addedNodes[0];
+        let cl = element.classList;
 
         if (this.pluginError) return;
-
         if (!this.initialized) {
             if (this.queuedNodes && this.queuedNodes.length && this.queuedNodes.length > 200)
             {
@@ -240,13 +242,13 @@ class DefaultChannels {
         }
 
         // Detect server switch
-        if (element.classList.contains(this.classes.searchBar) || element.classList.contains(this.classes.chat)) {
+        if (cl.contains(this.classes.search) || cl.contains(this.classes.chat)) {
             this.update();
         }
 
         // Update channel context menu
         if (element.classList.contains(this.classes.contextMenu)) {
-            this.log('Context menu opened');
+            // this.log('Context menu opened');
             let menuItems = $(element).find('.' + this.classes.item);
             // Attempt to find the name of the channel we rightclicked by looking for the 'Mute #channel' item
             let preItem = null;
