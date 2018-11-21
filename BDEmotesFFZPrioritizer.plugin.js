@@ -26,7 +26,7 @@
 
 class BDEmotesFFZPrioritizer {
     getName() { return "BDEmotesFFZPrioritizer"; }
-    getDescription() { return "Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
+    getDescription() { return "(NOTE: BD has been fixed and this plugin is no longer necessary. You can safely remove it, or keep it around in case I have to update it to fix BD again later.) Fixes BD so that FFZ emotes once again have priority over BTTV emotes. Get your Klappa on."; }
     getVersion() { return "0.0.5"; }
     getAuthor() { return "Chami"; }
     getSettingsPanel() { return "<h3>BDEmotesFFZPrioritizer Settings</h3>"; }
@@ -97,6 +97,7 @@ class BDEmotesFFZPrioritizer {
 
     // doFix: true to swap the repos, false to put them back to default
     fixEmotes(doFix = true) {
+        doFix = false; // remove this to reactivate the plugin
         let ffz = window.bdEmotes.FrankerFaceZ;
         if (ffz && ffz.Klappa && ffz.Klappa.startsWith('https://cdn.frankerfacez.com/') == doFix) {
             window.bdEmotes.FrankerFaceZ = window.bdEmotes.BTTV2;
