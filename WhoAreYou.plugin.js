@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.2.0","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.2","items":["Fixed a bug where existing messages in channels wouldn't get updated."]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.0","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]},{"title":"0.2.0","items":["Fixed a bug where existing messages in channels wouldn't get updated"]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -65,15 +65,9 @@ var WhoAreYou = (() => {
         constructor() {
             super();
 
-            this.classesDefault = {
-                chat: "chat-3bRxxu"
+            this.defaultSettings = {
+                swapUsername: false // Show the username first, then nick
             };
-            this.classesNormalized = {
-                chat: "da-chat"
-            };
-            this.classes = this.classesDefault;
-
-            this.defaultSettings = {};
 
             this.css = ".who-username { margin-left: 3pt; }";
         }
@@ -92,29 +86,39 @@ var WhoAreYou = (() => {
         }
 
         getSettingsPanel() {
-            return Settings.SettingPanel.build(this.saveSettings.bind(this));
+            return Settings.SettingPanel.build(this.saveSettings.bind(this),
+                new Settings.Switch("Swap username/nick", "Swaps the username and nickname of users, so the username is the primary name shown instead.",
+                    this.settings.swapUsername, e => { this.settings.swapUsername = e; }));
         }
         
         observer({ addedNodes, removedNodes }) {
-            if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
-            let cl = addedNodes[0].classList;
+            if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList)
+                return;
 
             addedNodes.forEach(added => {
+                // The updates we care about are
+                // 1) when switching channels and getting message history, and
+                // 2) when new messages arrive
                 if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
-                || added.matches('.' + this.classesDefault.chat)
-                || added.matches('.' + this.classesNormalized.chat))
+                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat))
                 {
+                    // We need to operate on the individual message elements that are contained within the updated item[s]
                     var messages = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
                     messages.forEach(node => {
+
                         var usernameNode = node.find(ZLibrary.DiscordSelectors.Messages.username);
+                        // Multiple messages in succession won't repeat the username header, ignore these
                         if (usernameNode === null)
                             return;
 
                         var message = ZLibrary.ReactTools.getOwnerInstance(node).props.message;
-                        if (message.nick === null)
+                        // Make sure the user has a nickname set, otherwise bail
+                        if (message.nick === null) 
                             return;
 
-                        $('<span class="who-username">(' + message.author.username + ')</span>').insertAfter(usernameNode)
+                        if (this.settings.swapUsername)
+                            usernameNode.text(message.author.username);
+                        $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>').insertAfter(usernameNode)
                     });
                 }
             });
