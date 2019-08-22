@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/WhoAreYou.plugin.js"},"changelog":[{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1.1","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.1.1","items":["Fixed a bug where existing messages in channels wouldn't get updated."]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -101,8 +101,8 @@ var WhoAreYou = (() => {
 
             addedNodes.forEach(added => {
                 if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
-                || added.matches(this.classesDefault.chat)
-                || added.matches(this.classesNormalized.chat))
+                || added.matches('.' + this.classesDefault.chat)
+                || added.matches('.' + this.classesNormalized.chat))
                 {
                     var messages = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
                     messages.forEach(node => {
