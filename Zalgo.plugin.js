@@ -1,4 +1,4 @@
-//META{"name":"Zalgo","displayName":"Zalgo","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/Zalgo.plugin.js"}*//
+//META{"name":"Zalgo","displayName":"Zalgo","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"}*//
 /*@cc_on
 @if (@_jscript)
 	
@@ -24,7 +24,7 @@
 @else@*/
 
 var Zalgo = (() => {
-    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://github.com/planetarian/BetterDiscordPlugins/blob/master/Zalgo.plugin.js"},"changelog":[{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
+    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.2","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"},"changelog":[{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
