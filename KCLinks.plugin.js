@@ -1,4 +1,4 @@
-//META{"name":"WhoAreYou","displayName":"WhoAreYou","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"}*//
+//META{"name":"KCLinks","displayName":"KCLinks","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"undefined"}*//
 /*@cc_on
 @if (@_jscript)
 	
@@ -23,8 +23,8 @@
 
 @else@*/
 
-var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.1","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]},{"title":"0.2.0","items":["Fixed a bug where existing messages in channels wouldn't get updated"]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
+var KCLinks = (() => {
+    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.1","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins"},"changelog":[{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -59,21 +59,21 @@ var WhoAreYou = (() => {
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Library) => {
 
-    const { Logger, Patcher, Settings } = Library;    
+    const { Logger, Patcher, Settings } = Library;
 
-    return class WhoAreYou extends Plugin {
+    return class KCLinks extends Plugin {
         constructor() {
             super();
 
             this.defaultSettings = {
-                swapUsername: false // Show the username first, then nick
+                mapLinks: true // Show links for map names
             };
 
-            this.css = ".who-username { margin-left: 3pt; }";
+            this.css = "";
         }
 
         onStart() {
-            ZLibrary.PluginUtilities.addStyle(this.getName()  + "-style", this.css);
+            ZLibrary.PluginUtilities.addStyle(this.getName() + "-style", this.css);
 
             Logger.log("Started");
         }
@@ -87,44 +87,71 @@ var WhoAreYou = (() => {
 
         getSettingsPanel() {
             return Settings.SettingPanel.build(this.saveSettings.bind(this),
-                new Settings.Switch("Swap username/nick", "Swaps the username and nickname of users, so the username is the primary name shown instead.",
-                    this.settings.swapUsername, e => { this.settings.swapUsername = e; }));
+                new Settings.Switch("Show Map Links", "Shows links for map names.",
+                    this.settings.mapLinks, e => { this.settings.mapLinks = e; }));
         }
-        
+
         observer({ addedNodes, removedNodes }) {
-            if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList)
+            if (this.operating || !addedNodes || !addedNodes[0] || !addedNodes[0].classList)
                 return;
+            try {
+                this.operating = true;
+                addedNodes.forEach(added => {
+                    if (added.nodeName == "#text")
+                        return;
+                    // The updates we care about are
+                    // 1) when switching channels and getting message history, and
+                    // 2) when new messages arrive
+                    if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
+                        || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat)
+                        || added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
+                        // We need to operate on the individual message elements that are contained within the updated item[s]
 
-            addedNodes.forEach(added => {
-                if (added.nodeName == "#text")
-                    return;
-                // The updates we care about are
-                // 1) when switching channels and getting message history, and
-                // 2) when new messages arrive
-                if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
-                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat))
-                {
-                    // We need to operate on the individual message elements that are contained within the updated item[s]
-                    var messages = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
-                    messages.forEach(node => {
+                        var messageNodes;
+                        if (added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
+                            messageNodes = [added];
+                        }
+                        else messageNodes = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
 
-                        var usernameNode = node.find(ZLibrary.DiscordSelectors.Messages.username);
-                        // Multiple messages in succession won't repeat the username header, ignore these
-                        if (usernameNode === null)
-                            return;
 
-                        var message = ZLibrary.ReactTools.getOwnerInstance(node).props.message;
-                        // Make sure the user has a nickname set, otherwise bail
-                        if (message.nick === null) 
-                            return;
+                        messageNodes.forEach(node => {
 
-                        if (this.settings.swapUsername)
-                            usernameNode.text(message.author.username);
-                        $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>').insertAfter(usernameNode)
-                    });
-                }
-            });
-            
+                            // Make sure this isn't an in-process message
+                            var containerNode = node.querySelectorAll('.container-206Blv')[0];
+                            if (containerNode.matches('.isSending-1nPcL7'))
+                                return;
+
+                            // Get the node containing the message text
+                            var markupNode = node.querySelectorAll('.markup-2BOw-j');
+                            if (!markupNode || markupNode.length === 0)
+                                return;
+                            markupNode = markupNode[0];
+
+                            var content = markupNode.innerHTML;
+
+                            if (this.settings.mapLinks) {
+                                const regexp = /\bW?(?<world>[1-7,E]+)-(?<map>[1-7]\b)/gi;
+
+                                const mapReplacer = function (match, worldStr, mapStr, offset, string) {
+                                    var map = Number(mapStr);
+                                    const worlds5 = ['2','3','4','5','6'];
+                                    if (worldStr === '1' && map > 6) return match;
+                                    if (worlds5.includes(worldStr) && map > 5) return match;
+                                    if (worldStr === '7' && map > 2) return match;
+                                    if (worldStr.toLowerCase() === 'e') return match;
+                                    return '<a href="http://kc.piro.moe/nav/#/' + worldStr + '-' + map + '">' + match + '</a>';
+                                };
+                                var newContent = content.replace(regexp, mapReplacer);
+                                markupNode.innerHTML = newContent;
+                            }
+                        });
+                    }
+                });
+            }
+            finally {
+                this.operating = false;
+            }
+
         }
     };
 
