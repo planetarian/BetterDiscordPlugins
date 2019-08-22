@@ -1,4 +1,4 @@
-//META{"name":"KCLinks","displayName":"KCLinks","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"undefined"}*//
+//META{"name":"KCLinks","displayName":"KCLinks","website":"https://github.com/planetarian/BetterDiscordPlugins","source":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/KCLinks.plugin.js"}*//
 /*@cc_on
 @if (@_jscript)
 	
@@ -24,7 +24,7 @@
 @else@*/
 
 var KCLinks = (() => {
-    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins"},"changelog":[{"title":"0.0.2","items":["Code cleanup"]},{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/KCLinks.plugin.js"},"changelog":[{"title":"0.0.2","items":["Code cleanup"]},{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
