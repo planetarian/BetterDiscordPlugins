@@ -24,7 +24,7 @@
 @else@*/
 
 var KCLinks = (() => {
-    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/KCLinks.plugin.js"},"changelog":[{"title":"0.0.2","items":["Code cleanup"]},{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1.1","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/KCLinks.plugin.js"},"changelog":[{"title":"0.1.1","items":["Added link tooltips"]},{"title":"0.1.0","items":["Added quest links"]},{"title":"0.0.2","items":["Code cleanup"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -66,7 +66,8 @@ var KCLinks = (() => {
             super();
 
             this.defaultSettings = {
-                mapLinks: true // Show links for map names
+                mapLinks: true, // Show links for map names
+                questLinks: true // Show links for quest IDs
             };
 
             this.css = "";
@@ -88,7 +89,9 @@ var KCLinks = (() => {
         getSettingsPanel() {
             return Settings.SettingPanel.build(this.saveSettings.bind(this),
                 new Settings.Switch("Show Map Links", "Shows links for map names.",
-                    this.settings.mapLinks, e => { this.settings.mapLinks = e; }));
+                    this.settings.mapLinks, e => { this.settings.mapLinks = e; }),
+                new Settings.Switch("Show Quest Links", "Shows links for quest IDs.",
+                    this.settings.questLinks, e => { this.settings.questLinks = e; }));
         }
 
         observer({ addedNodes, removedNodes }) {
@@ -126,9 +129,10 @@ var KCLinks = (() => {
                         markupNode = markupNode[0];
 
                         var content = markupNode.innerHTML;
+                        var newContent = content;
 
                         if (this.settings.mapLinks) {
-                            const regexp = /\bW?(?<world>[1-7,E]+)-(?<map>[1-7]\b)/gi;
+                            const regexp = /\bW?(?<world>[1-7]{1,2}|E)-(?<map>[1-7])(?:[a-z]\w{0,2})?\b/gi;
 
                             // Replace mentions of map names with links to those maps on KCNav
                             // TODO: make this a popout that offers links to KCNav, Wikia, enkcwiki, etc.
@@ -139,11 +143,21 @@ var KCLinks = (() => {
                                 if (worlds5.includes(worldStr) && map > 5) return match;
                                 if (worldStr === '7' && map > 2) return match;
                                 if (worldStr.toLowerCase() === 'e') return match;
-                                return '<a href="http://kc.piro.moe/nav/#/' + worldStr + '-' + map + '">' + match + '</a>';
+                                return '<a title="Ctrl-click to open in KCNav" href="http://kc.piro.moe/nav/#/' + worldStr + '-' + map + '">' + match + '</a>';
                             };
-                            var newContent = content.replace(regexp, mapReplacer);
-                            markupNode.innerHTML = newContent;
+                            content = content.replace(regexp, mapReplacer);
                         }
+
+                        if (this.settings.questLinks) {
+                            const regexp = /\b(?<type>A|B[dwmq]?|C|D|E|F|G|WA)(?<number>\d{1,3})\b/gi;
+
+                            const questReplacer = function (match, type, numStr, offset, string) {
+                                return '<a title="Ctrl-click to open in KC Mission Control" href="http://kc.piro.moe/quests/#/search?query=' + match + '&type=1&comp=true&locked=true">' + match + '</a>';
+                            }
+                            content = content.replace(regexp, questReplacer);
+                        }
+                        markupNode.innerHTML = content;
+
                     });
                 }
             });
