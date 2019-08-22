@@ -92,9 +92,8 @@ var KCLinks = (() => {
         }
 
         observer({ addedNodes, removedNodes }) {
-            if (this.operating || !addedNodes || !addedNodes[0] || !addedNodes[0].classList)
+            if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList)
                 return;
-            this.operating = true;
             addedNodes.forEach(added => {
                 if (added.nodeName == "#text")
                     return;
