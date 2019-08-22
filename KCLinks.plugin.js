@@ -24,7 +24,7 @@
 @else@*/
 
 var KCLinks = (() => {
-    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.1","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins"},"changelog":[{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"KCLinks","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Detects Kantai Collection related text in chat and provides convenient relevant ctrl-clickable links.","github":"https://github.com/planetarian/BetterDiscordPlugins"},"changelog":[{"title":"0.0.2","items":["Code cleanup"]},{"title":"0.0.1: Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -94,63 +94,60 @@ var KCLinks = (() => {
         observer({ addedNodes, removedNodes }) {
             if (this.operating || !addedNodes || !addedNodes[0] || !addedNodes[0].classList)
                 return;
-            try {
-                this.operating = true;
-                addedNodes.forEach(added => {
-                    if (added.nodeName == "#text")
-                        return;
-                    // The updates we care about are
-                    // 1) when switching channels and getting message history, and
-                    // 2) when new messages arrive
-                    if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
-                        || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat)
-                        || added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
-                        // We need to operate on the individual message elements that are contained within the updated item[s]
+            this.operating = true;
+            addedNodes.forEach(added => {
+                if (added.nodeName == "#text")
+                    return;
 
-                        var messageNodes;
-                        if (added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
-                            messageNodes = [added];
-                        }
-                        else messageNodes = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
+                // The updates we care about are
+                // 1) when switching channels and getting message history, and
+                // 2) when new messages arrive
+                if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
+                    || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat)
+                    || added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
 
-
-                        messageNodes.forEach(node => {
-
-                            // Make sure this isn't an in-process message
-                            var containerNode = node.querySelectorAll('.container-206Blv')[0];
-                            if (containerNode.matches('.isSending-1nPcL7'))
-                                return;
-
-                            // Get the node containing the message text
-                            var markupNode = node.querySelectorAll('.markup-2BOw-j');
-                            if (!markupNode || markupNode.length === 0)
-                                return;
-                            markupNode = markupNode[0];
-
-                            var content = markupNode.innerHTML;
-
-                            if (this.settings.mapLinks) {
-                                const regexp = /\bW?(?<world>[1-7,E]+)-(?<map>[1-7]\b)/gi;
-
-                                const mapReplacer = function (match, worldStr, mapStr, offset, string) {
-                                    var map = Number(mapStr);
-                                    const worlds5 = ['2','3','4','5','6'];
-                                    if (worldStr === '1' && map > 6) return match;
-                                    if (worlds5.includes(worldStr) && map > 5) return match;
-                                    if (worldStr === '7' && map > 2) return match;
-                                    if (worldStr.toLowerCase() === 'e') return match;
-                                    return '<a href="http://kc.piro.moe/nav/#/' + worldStr + '-' + map + '">' + match + '</a>';
-                                };
-                                var newContent = content.replace(regexp, mapReplacer);
-                                markupNode.innerHTML = newContent;
-                            }
-                        });
+                    // We need to operate on the individual message elements that are contained within the updated item[s]
+                    var messageNodes;
+                    if (added.matches(ZLibrary.DiscordSelectors.Messages.message)) {
+                        messageNodes = [added];
                     }
-                });
-            }
-            finally {
-                this.operating = false;
-            }
+                    else messageNodes = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
+
+                    messageNodes.forEach(node => {
+
+                        // Make sure this isn't an in-process message
+                        var containerNode = node.querySelectorAll('.container-206Blv')[0];
+                        if (containerNode.matches('.isSending-1nPcL7'))
+                            return;
+
+                        // Get the node containing the message text
+                        var markupNode = node.querySelectorAll('.markup-2BOw-j');
+                        if (!markupNode || markupNode.length === 0)
+                            return;
+                        markupNode = markupNode[0];
+
+                        var content = markupNode.innerHTML;
+
+                        if (this.settings.mapLinks) {
+                            const regexp = /\bW?(?<world>[1-7,E]+)-(?<map>[1-7]\b)/gi;
+
+                            // Replace mentions of map names with links to those maps on KCNav
+                            // TODO: make this a popout that offers links to KCNav, Wikia, enkcwiki, etc.
+                            const mapReplacer = function (match, worldStr, mapStr, offset, string) {
+                                var map = Number(mapStr);
+                                const worlds5 = ['2','3','4','5','6'];
+                                if (worldStr === '1' && map > 6) return match;
+                                if (worlds5.includes(worldStr) && map > 5) return match;
+                                if (worldStr === '7' && map > 2) return match;
+                                if (worldStr.toLowerCase() === 'e') return match;
+                                return '<a href="http://kc.piro.moe/nav/#/' + worldStr + '-' + map + '">' + match + '</a>';
+                            };
+                            var newContent = content.replace(regexp, mapReplacer);
+                            markupNode.innerHTML = newContent;
+                        }
+                    });
+                }
+            });
 
         }
     };
