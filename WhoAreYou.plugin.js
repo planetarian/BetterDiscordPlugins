@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.2","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.1","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]},{"title":"0.2.0","items":["Fixed a bug where existing messages in channels wouldn't get updated"]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.3","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.3","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -119,7 +119,6 @@ var WhoAreYou = (() => {
                             return;
 
                         var message = ZLibrary.ReactTools.getOwnerInstance(node).props.messages[0];
-                        console.log(message);
 
                         // Make sure the user has a nickname set, otherwise bail
                         if (message.nick === null) 
