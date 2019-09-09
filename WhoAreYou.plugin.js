@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.1","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]},{"title":"0.2.0","items":["Fixed a bug where existing messages in channels wouldn't get updated"]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.2","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.1","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]},{"title":"0.2.0","items":["Fixed a bug where existing messages in channels wouldn't get updated"]},{"title":"Initial release","items":["I did a thing"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -98,29 +98,37 @@ var WhoAreYou = (() => {
             addedNodes.forEach(added => {
                 if (added.nodeName == "#text")
                     return;
+
                 // The updates we care about are
                 // 1) when switching channels and getting message history, and
                 // 2) when new messages arrive
-                if (added.matches(ZLibrary.DiscordSelectors.Messages.container)
+                if (added.matches(".da-container")
                 || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat))
                 {
                     // We need to operate on the individual message elements that are contained within the updated item[s]
-                    var messages = added.querySelectorAll(ZLibrary.DiscordSelectors.Messages.message);
-                    messages.forEach(node => {
+                    var messages;
+                    if (added.matches(".da-container"))
+                        messages = [added];
+                    else
+                        messages = added.querySelectorAll(".da-container");
 
-                        var usernameNode = node.find(ZLibrary.DiscordSelectors.Messages.username);
+                    messages.forEach(node => {
+                        var usernameNode = node.find(".da-username");
                         // Multiple messages in succession won't repeat the username header, ignore these
                         if (usernameNode === null)
                             return;
 
-                        var message = ZLibrary.ReactTools.getOwnerInstance(node).props.message;
+                        var message = ZLibrary.ReactTools.getOwnerInstance(node).props.messages[0];
+                        console.log(message);
+
                         // Make sure the user has a nickname set, otherwise bail
                         if (message.nick === null) 
                             return;
 
                         if (this.settings.swapUsername)
                             usernameNode.text(message.author.username);
-                        $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>').insertAfter(usernameNode)
+                        $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>')
+                        .insertAfter(usernameNode)
                     });
                 }
             });
