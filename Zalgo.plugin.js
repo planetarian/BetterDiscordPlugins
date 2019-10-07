@@ -24,7 +24,7 @@
 @else@*/
 
 var Zalgo = (() => {
-    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.2.0","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"},"changelog":[{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
+    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.0","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"},"changelog":[{"title":"0.3.0","items":["Fixed breakage caused by discord update","Switched from locally-tracked classes to use DiscordSelectors"]},{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -100,39 +100,24 @@ var Zalgo = (() => {
                 '\u034e', /*     ͎     */    '\u0353', /*     ͓     */    '\u0354', /*     ͔     */    '\u0355', /*     ͕     */
                 '\u0356', /*     ͖     */    '\u0359', /*     ͙     */    '\u035a', /*     ͚     */    '\u0323'  /*     ̣     */
             ];
-            this.classesDefault = {
-                chat: "chat-3bRxxu",
-                searchBar: "searchBar-3dMhjb",
-                messagesWrapper: "messagesWrapper-3lZDfY"
-            };
-            this.classesNormalized = {
-                appMount: "da-appMount",
-                chat: "da-chat",
-                searchBar: "da-searchBar",
-                messagesWrapper: "da-messagesWrapper"
-            };
-            this.classes = this.classesDefault;
 
             this.defaultSettings = {
                 corruptionAmount: 1.0,
                 rampEnd: 0.7,
                 corruptUp: false,
                 corruptMid: true,
-                corruptDown: false,
-                useNormalizedClasses: true
-            }
+                corruptDown: false
+            };
         }
 
         onStart() {
             Logger.log("Started");
-            //Patcher.before(Logger, "log", (t, a) => {
-            //    a[0] = "Patched Message: " + a[0];
-            //});
             this.update();
         }
 
         onStop() {
-            $('.' + this.classes.chat + ' textarea').off('keydown.zalgo');
+            let textArea = this.getChatTextArea();
+            if (textArea) textArea.off("keydown.zalgo");
             Logger.log("Stopped");
             Patcher.unpatchAll();
         }
@@ -144,41 +129,27 @@ var Zalgo = (() => {
                 new Settings.Slider("Ramp end position", "adjust the endpoint of the ramp-in when using the `r` prefix",
                     0.05, 1.0, this.settings.rampEnd, e => { this.settings.rampEnd = e; }),
                 new Settings.Switch("Obscure text", "determines whether zalgo characters are placed over the text or beneath it",
-                    this.settings.corruptMid, e => { this.settings.corruptMid = e; }),
-                new Settings.Switch("Use normalized classes", "If enabled, will make use of BandagedBD's 'Normalize Classes' feature where possible. Should make the plugin more resilient to Discord updates.",
-                    this.settings.useNormalizedClasses, e => { this.useNormalizedClasses = e; this.updateClasses(); })
+                    this.settings.corruptMid, e => { this.settings.corruptMid = e; })
             );
         }
-
-        updateClasses() {
-            let cfg = global.bdSettings;
-            let opt = "fork-ps-4";
-            this.classes = (cfg
-                && ((cfg.stable && cfg.stable.settings[opt])
-                    || (cfg.settings && cfg.settings[opt]))
-                && this.settings.useNormalizedClasses)
-                ? this.classesNormalized
-                : this.classesDefault;
-        }
-
         
         observer({ addedNodes, removedNodes }) {
             if (!this.classes || !addedNodes || !addedNodes[0] || !addedNodes[0].classList) return;
-            let cl = addedNodes[0].classList;
+            let node = addedNodes[0];
 
-            if (cl.contains(this.classes.searchBar)
-                || cl.contains(this.classes.chat)
-                || cl.contains(this.classes.messagesWrapper)) {
+            let sel = ZLibrary.DiscordSelectors;
+            if (node.matches(sel.TitleWrap.chat)
+                || node.matches(sel.TitleWrap.chatContent)) {
                 this.update();
             }
         }
 
         update() {
-            let textArea = $('.' + this.classes.chat + ' textarea');
-            if (!textArea.length) return;
+            let textArea = this.getChatTextArea();
+            if (!textArea || !textArea.length) return;
 
             let inputBox = textArea[0];
-            textArea.off('keydown.zalgo').on('keydown.zalgo', (e) => {
+            textArea.off("keydown.zalgo").on("keydown.zalgo", (e) => {
                 // Corrupt text either when we press enter or tab-complete
                 if ((e.which == 13 || e.which == 9) && inputBox.value) {
                     let cursorPos = inputBox.selectionEnd;
@@ -186,7 +157,7 @@ var Zalgo = (() => {
                     let tailLen = value.length - cursorPos;
                     
                     // If we pressed Tab, perform corruption only if the cursor is right after the closing braces.
-                    if (e.which == 9 && !value.substring(0, inputBox.selectionEnd).endsWith('}}'))
+                    if (e.which == 9 && !value.substring(0, inputBox.selectionEnd).endsWith("}}"))
                         return;
                     // Markup format:
                     // {{<r><rampEnd>,<startAmount>-<endAmount>:text}}
@@ -219,12 +190,17 @@ var Zalgo = (() => {
             this.initialized = true;
         }
 
+        getChatTextArea() {
+            let sel = ZLibrary.DiscordSelectors;
+            return $(sel.Textarea.channelTextArea.value + " " + sel.Textarea.textArea.value);
+        }
+
         doZalgo(match, ramp, rampEnd, startAmt, endAmt, contents, offset, string) {
             const maxAmt = 10;
             let hasStart = startAmt >= 0 && startAmt <= maxAmt;
             let hasEnd = endAmt >= 0 && endAmt <= maxAmt;
             let hasRampEnd = rampEnd >= 0 && rampEnd <= 1;
-            let doRamp = ramp == 'r' || hasStart;
+            let doRamp = ramp == "r" || hasStart;
 
             if (!hasRampEnd) rampEnd = this.settings.rampEnd;
             // use default end amount if not provided
@@ -249,10 +225,10 @@ var Zalgo = (() => {
             let optMid = config.corruptMid;
             let optDown = config.corruptDown || (!optUp && !optMid);
 
-            let newTxt = '';
+            let newTxt = "";
 
             let len = txt.length;
-            if (len == 0) return '';
+            if (len == 0) return "";
 
             // Figure out at what index the ramp ends
             let rampEndIndex = len * rampEnd;
