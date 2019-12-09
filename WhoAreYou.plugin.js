@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.3","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.3","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.4","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.4","items":["Fix for not updating names when switching channels, caused by further discord updates"]},{"title":"0.3.3","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -102,8 +102,10 @@ var WhoAreYou = (() => {
                 // The updates we care about are
                 // 1) when switching channels and getting message history, and
                 // 2) when new messages arrive
-                if (added.matches(".da-container")
-                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat))
+                //Logger.log(added);
+                if (added.matches(".da-container") // new message
+                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chatContent) // changed channel
+                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat)) // changed server
                 {
                     // We need to operate on the individual message elements that are contained within the updated item[s]
                     var messages;
