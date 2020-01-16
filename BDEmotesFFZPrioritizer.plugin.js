@@ -24,7 +24,7 @@
 @else@*/
 
 var BDEmotesFFZPrioritizer = (() => {
-    const config = {"info":{"name":"BDEmotesFFZPrioritizer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1.0","description":"Ensures that FFZ emotes have priority over the objectively inferior BTTV emotes. Get your Klappa on.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/BDEmotesFFZPrioritizer.plugin.js"},"changelog":[{"title":"0.1.0","items":["Moved to new BD plugin format"]}],"main":"index.js"};
+    const config = {"info":{"name":"BDEmotesFFZPrioritizer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.1.1","description":"Ensures that FFZ emotes have priority over the objectively inferior BTTV emotes. Get your Klappa on.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/BDEmotesFFZPrioritizer.plugin.js"},"changelog":[{"title":"0.1.1","items":["Fixed priority order"]},{"title":"0.1.0","items":["Moved to new BD plugin format"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -68,7 +68,7 @@ var BDEmotesFFZPrioritizer = (() => {
 
         onStart() {
             Logger.log("Started");
-            this.fixEmotes();
+            setTimeout(() => this.fixEmotes(), 3000);
         }
 
         onStop() {
@@ -81,12 +81,44 @@ var BDEmotesFFZPrioritizer = (() => {
             this.fixEmotes();
         }
 
+        setEmotes() {
+            if (!window.bdEmotes.FrankerFaceZ)
+                return false;
+
+            this.normalEmotes = {
+                twitch: window.bdEmotes.TwitchGlobal,
+                twitchSub: window.bdEmotes.TwitchSubscriber,
+                bttv: window.bdEmotes.BTTV,
+                bttv2: window.bdEmotes.BTTV2,
+                ffz: window.bdEmotes.FrankerFaceZ
+            };
+    
+            this.swappedEmotes = {
+                twitch: window.bdEmotes.FrankerFaceZ,
+                twitchSub: window.bdEmotes.TwitchSubscriber,
+                bttv: window.bdEmotes.BTTV,
+                bttv2: window.bdEmotes.BTTV2,
+                ffz: window.bdEmotes.TwitchGlobal
+            };
+            
+            return true;
+        }
+
         // doFix: true to swap the repos, false to put them back to default
         fixEmotes(doFix = true) {
+            if (!this.setEmotes() || !this.normalEmotes || !this.swappedEmotes)
+                return;
+
             let ffz = window.bdEmotes.FrankerFaceZ;
             if (ffz && ffz.Klappa && ffz.Klappa.startsWith('https://cdn.frankerfacez.com/') == doFix) {
-                window.bdEmotes.FrankerFaceZ = window.bdEmotes.BTTV;
-                window.bdEmotes.BTTV = ffz;
+                var emotes = doFix ? this.swappedEmotes : this.normalEmotes;
+
+                window.bdEmotes.TwitchGlobal = emotes.twitch;
+                window.bdEmotes.TwitchSubscriber = emotes.twitchSub;
+                window.bdEmotes.BTTV = emotes.bttv;
+                window.bdEmotes.BTTV2 = emotes.bttv2;
+                window.bdEmotes.FrankerFaceZ = emotes.ffz;
+
                 Logger.log("Emotes swapped" + (doFix ? "." : " back."));
             }
         }
@@ -96,4 +128,4 @@ var BDEmotesFFZPrioritizer = (() => {
         return plugin(Plugin, Api);
     })(global.ZeresPluginLibrary.buildPlugin(config));
 })();
-/*@end@*/       
+/*@end@*/
