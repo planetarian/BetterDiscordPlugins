@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.4","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.4","items":["Fix for not updating names when switching channels, caused by further discord updates"]},{"title":"0.3.3","items":["Fix for error caused by discord update"]},{"title":"0.3.1","items":["Fix for console error caused by text nodes"]},{"title":"0.3.0","items":["Added option to swap the username/nick in chat","code cleanup"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.5","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.5","items":["Fix for new discord update"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -41,7 +41,7 @@ var WhoAreYou = (() => {
             ModalStack.push(function(props) {
                 return BdApi.React.createElement(ConfirmationModal, Object.assign({
                     header: title,
-                    children: [TextElement({color: TextElement.Colors.PRIMARY, children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]})],
+                    children: [BdApi.React.createElement(TextElement, {color: TextElement.Colors.PRIMARY, children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]})],
                     red: false,
                     confirmText: "Download Now",
                     cancelText: "Cancel",
@@ -96,41 +96,37 @@ var WhoAreYou = (() => {
                 return;
 
             addedNodes.forEach(added => {
-                if (added.nodeName == "#text")
-                    return;
-
                 // The updates we care about are
-                // 1) when switching channels and getting message history, and
-                // 2) when new messages arrive
-                //Logger.log(added);
-                if (added.matches(".da-container") // new message
-                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chatContent) // changed channel
-                || added.matches(ZLibrary.DiscordSelectors.TitleWrap.chat)) // changed server
-                {
-                    // We need to operate on the individual message elements that are contained within the updated item[s]
-                    var messages;
-                    if (added.matches(".da-container"))
-                        messages = [added];
-                    else
-                        messages = added.querySelectorAll(".da-container");
+                // 1) when new messages arrive, and
+                // 2) when switching channels and getting message history
 
-                    messages.forEach(node => {
-                        var usernameNode = node.find(".da-username");
-                        // Multiple messages in succession won't repeat the username header, ignore these
-                        if (usernameNode === null)
-                            return;
+                var groups;
+                if (added.matches(".da-groupStart"))
+                    groups = [added];
+                else if (added.matches(".da-chatContent"))
+                    groups = added.findAll('.da-groupStart');
+                else return;
+                
+                for (var i = 0; i < groups.length; i++) {
+                    var group = groups[i];
+                    var message = ZLibrary.ReactTools.getReactInstance(group).child.memoizedProps.message;
 
-                        var message = ZLibrary.ReactTools.getOwnerInstance(node).props.messages[0];
+                    if (message == null || message.author == null) {
+                        Logger.log("Invalid or no message data associated with observed element:");
+                        console.log(group);
+                        continue;
+                    }
 
-                        // Make sure the user has a nickname set, otherwise bail
-                        if (message.nick === null) 
-                            return;
+                    // Make sure the user has a nickname set, otherwise skip it
+                    if (message.nick === null)
+                        continue;
 
-                        if (this.settings.swapUsername)
-                            usernameNode.text(message.author.username);
-                        $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>')
-                        .insertAfter(usernameNode)
-                    });
+                    // Update the message header
+                    var usernameNode = group.find('.da-username');
+                    if (this.settings.swapUsername)
+                        usernameNode.text(message.author.username);
+                    $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>')
+                    .insertAfter(usernameNode);
                 }
             });
             
