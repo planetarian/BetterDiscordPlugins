@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.6","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.6","items":["Additional fixes for new discord update"]},{"title":"0.3.5","items":["Fix for new discord update"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.7","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.7","items":["Another fix because stuff changed *again*"]},{"title":"0.3.6","items":["Additional fixes for new discord update"]},{"title":"0.3.5","items":["Fix for new discord update"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -109,7 +109,7 @@ var WhoAreYou = (() => {
                 
                 for (var i = 0; i < groups.length; i++) {
                     var group = groups[i];
-                    var message = ZLibrary.ReactTools.getReactInstance(group).child.memoizedProps.message;
+                    var message = ZLibrary.ReactTools.getReactInstance(group.children[0]).child.memoizedProps.message;
 
                     if (message == null || message.author == null) {
                         Logger.log("Invalid or no message data associated with observed element:");
