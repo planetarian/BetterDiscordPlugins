@@ -24,7 +24,7 @@
 @else@*/
 
 var WhoAreYou = (() => {
-    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.3.7","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.3.7","items":["Another fix because stuff changed *again*"]},{"title":"0.3.6","items":["Additional fixes for new discord update"]},{"title":"0.3.5","items":["Fix for new discord update"]}],"main":"index.js"};
+    const config = {"info":{"name":"WhoAreYou","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.4.0","description":"Shows user names next to nicks in chat.","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/WhoAreYou.plugin.js"},"changelog":[{"title":"0.4.0","items":["Can now show username in 'users typing' bar","Switched to more reliable replacement method"]},{"title":"0.3.8","items":["Another fix because stuff changed *again*"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -59,77 +59,124 @@ var WhoAreYou = (() => {
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Library) => {
 
-    const { Logger, Patcher, Settings } = Library;    
+    const { Logger, Patcher, Settings } = Library;
 
     return class WhoAreYou extends Plugin {
+
         constructor() {
             super();
 
             this.defaultSettings = {
-                swapUsername: false // Show the username first, then nick
+                swapUsername: false, // Show the username first, then nick
+                translateTypingbar: true,
             };
 
             this.css = ".who-username { margin-left: 3pt; }";
         }
 
+        getSettingsPanel() {
+            return Settings.SettingPanel.build(this.saveSettings.bind(this),
+                new Settings.SettingGroup("WhoAreYou Settings", {collapsible: false, shown: true}).append(
+                    new Settings.Switch("Swap username/nick", "Swaps the username and nickname of users, so the username is the primary name shown instead.",
+                        this.settings.swapUsername, e => { this.settings.swapUsername = e; }),
+                    new Settings.Switch("Translate 'users typing' bar", "Shows usernames instead of nicks on the 'users typing' bar.",
+                        this.settings.translateTypingbar, e => { this.settings.translateTypingbar = e; })
+            ));
+        }
+
+        getModule(name) { 
+            return ZLibrary.WebpackModules.getByIndex(ZLibrary.WebpackModules.getIndex(e => e.displayName === name));
+        }
+
         onStart() {
             ZLibrary.PluginUtilities.addStyle(this.getName()  + "-style", this.css);
 
+            this.patchTypingUsers.bind(this)();
+            this.patchedMessageModule = Patcher.before(this.getModule("Message"),
+                "default", (o, a) => this.beforeMessage(o, a, this));
+            this.patchedHeaderModule = Patcher.after(this.getModule("MessageHeader"),
+                "default", (o, a, v) => this.afterMessageHeader(o, a, v, this));
+            
             Logger.log("Started");
+        }
+
+        async patchTypingUsers() {
+            const TypingUsers = await ZLibrary.ReactComponents.getComponentByName("TypingUsers", ZLibrary.DiscordSelectors.Typing.typing);
+            if (TypingUsers == null) return;
+
+            Patcher.after(TypingUsers.component.prototype, "render", (o,a,v) => this.afterTypingUsers(o,a,v,this));
         }
 
         onStop() {
             ZLibrary.PluginUtilities.removeStyle(this.getName() + "-style");
 
-            Logger.log("Stopped");
             Patcher.unpatchAll();
+            
+            Logger.log("Stopped");
         }
 
-        getSettingsPanel() {
-            return Settings.SettingPanel.build(this.saveSettings.bind(this),
-                new Settings.Switch("Swap username/nick", "Swaps the username and nickname of users, so the username is the primary name shown instead.",
-                    this.settings.swapUsername, e => { this.settings.swapUsername = e; }));
+        afterTypingUsers(obj, args, result, plugin) {
+            if (!(this.settings.translateTypingbar && obj && result && obj.props.channel)) return;
+            var users = Object.keys(obj.props.typingUsers).map(id => ({
+                user: ZLibrary.DiscordModules.UserStore.getUser(id),
+                member: ZLibrary.DiscordModules.GuildMemberStore.getMember(obj.props.channel.guild_id, id)
+                }));
+            if (!users.length) return;
+
+            var userTags = result.props.children[1].props.children
+                .filter(c => c).map(c => c.props)
+                .filter(c => c).map(c => c.children) // nicks & undefined
+            for (var i = 0; i < userTags.length; i++) {
+                userTags[i][0] = users[i].user.username;
+            }
+        }
+
+        beforeMessage(obj, args, plugin) {
+            var data = args[0];
+            var header = data.childrenHeader;
+            if (header && header.props && header.props.message) {
+                this.replaceMessage(header.props);
+                return;
+            }
+            var sysMsg = data.childrenSystemMessage;
+            if (sysMsg && sysMsg.props && sysMsg.props.message) {
+                this.replaceMessage(sysMsg.props);
+                return;
+            }
+        }
+
+        replaceMessage(props) {
+            var oldMessage = props.message;
+            if (!oldMessage.nick) return;
+
+            var newMessage = ZLibrary.Structs.Message.from(oldMessage).discordObject;
+            if (!newMessage.realNick)
+                newMessage.realNick = newMessage.nick;
+            newMessage.nick = this.getDisplayName(oldMessage);
+
+            props.message = newMessage;
+        }
+
+        afterMessageHeader(obj, args, returnValue, plugin) {
+            var message = args[0].message;
+            if (!message.realNick) return;
+            try {
+                var newChild = ZLibrary.DiscordModules.React
+                    .createElement('span', {className: 'who-username'}, '(' + this.getAltName(message) + ')');
+                var children = returnValue.props.children[2].props.children;
+                children.push(newChild);
+            }
+            catch (ex) {
+                Logger.log("Failed to operate on message header.");
+                Logger.log(ex);
+            }
         }
         
-        observer({ addedNodes, removedNodes }) {
-            if (!addedNodes || !addedNodes[0] || !addedNodes[0].classList)
-                return;
-
-            addedNodes.forEach(added => {
-                // The updates we care about are
-                // 1) when new messages arrive, and
-                // 2) when switching channels and getting message history
-
-                var groups;
-                if (added.matches(".da-groupStart"))
-                    groups = [added];
-                else if (added.matches(".da-chatContent") || added.matches('.da-clickableHeader'))
-                    groups = added.findAll('.da-groupStart');
-                else return;
-                
-                for (var i = 0; i < groups.length; i++) {
-                    var group = groups[i];
-                    var message = ZLibrary.ReactTools.getReactInstance(group.children[0]).child.memoizedProps.message;
-
-                    if (message == null || message.author == null) {
-                        Logger.log("Invalid or no message data associated with observed element:");
-                        console.log(group);
-                        continue;
-                    }
-
-                    // Make sure the user has a nickname set, otherwise skip it
-                    if (message.nick === null)
-                        continue;
-
-                    // Update the message header
-                    var usernameNode = group.find('.da-username');
-                    if (this.settings.swapUsername)
-                        usernameNode.text(message.author.username);
-                    $('<span class="who-username">(' + (this.settings.swapUsername ? message.nick : message.author.username) + ')</span>')
-                    .insertAfter(usernameNode);
-                }
-            });
-            
+        getDisplayName(message) {
+            return !this.settings.swapUsername && message.nick ? message.realNick || message.nick : message.author.username;
+        }
+        getAltName(message) {
+            return this.settings.swapUsername ? message.realNick || message.nick : message.author.username;
         }
     };
 
