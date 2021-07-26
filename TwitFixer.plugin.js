@@ -61,7 +61,7 @@ var TwitFixer = (() => {
 
     const { Logger, DiscordModules, Patcher, Settings } = Library;
 
-    return class Zalgo extends Plugin {
+    return class TwitFixer extends Plugin {
         constructor() {
             super();
 
