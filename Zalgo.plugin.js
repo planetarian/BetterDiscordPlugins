@@ -190,7 +190,7 @@ let Zalgo = (() => {
             if (regex.test(content)) {
               content = content.replace(regex, this.doTransform.bind(this));
               if (content.length > 2000) {
-                PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + value.length, {type: 'error'});
+                PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + content.length, {type: 'error'});
                 return;
               }
               a[1].content = content;
