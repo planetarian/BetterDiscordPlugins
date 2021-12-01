@@ -179,14 +179,15 @@ let Zalgo = (() => {
             //    c: cursive (𝓽𝓮𝓼𝓽)
             //    g: goth (𝖙𝖊𝖘𝖙)
             //    f: flipped (ʇǝsʇ)
-            //    s: small (ᵗᵉˢᵗ)
+            //    t: tiny (ᵗᵉˢᵗ)
             //    m: mirrored (ƚɘꙅƚ)
+            //    s: spongebob case (tEsT)
             // r: enable ramping
             // rampEnd: normalized value (0.0-1.0) representing ramp length, requires <r>
             // startAmount: corruption amount at start of ramp; enables ramping even without <r>
             // endamount: corruption amount at end of ramp, or across whole string if no ramp
             // text: text to apply zalgo corruption to
-            const regex = /\{\{(?:(?:(?:([obucgfsm]))?,?)?(?:(r)(\d+(?:\.\d+)?)?,?)?(?:(\d+(?:\.\d+)?)-)?(\d+(?:\.\d+)?)?\:)?((?:(?!{{).)*?)\}\}/gsi;
+            const regex = /\{\{(?:(?:([obucgftms])?,?)?(?:(r)(\d+(?:\.\d+)?)?,?)?(?:(\d+(?:\.\d+)?)-)?(\d+(?:\.\d+)?)?:)?((?:(?!{{).)*?)}}/gsi;
             if (regex.test(content)) {
               content = content.replace(regex, this.doTransform.bind(this));
               if (content.length > 2000) {
@@ -236,10 +237,12 @@ let Zalgo = (() => {
               return this.charMapSub(this.gothCharMap, contents);
             case "f":
               return this.charMapSub(this.flipCharMap, contents);
-            case "s":
+            case "t":
               return this.charMapSub(this.smallCharMap, contents);
             case "m":
               return this.charMapSub(this.mirroredCharMap, contents);
+            case "s":
+              return this.getMocking(contents);
           }
           let hasStart = startAmt >= 0 && startAmt <= maxAmt;
           let hasEnd = endAmt >= 0 && endAmt <= maxAmt;
@@ -340,6 +343,16 @@ let Zalgo = (() => {
           for (let i = 0; i < this.zalgoMid.length; i++)
             if (c === this.zalgoMid[i]) return true;
           return false;
+        }
+
+        getMocking(text) {
+          let transformed = text.slice(0,1);
+          let flipper = true;
+          for(let c of text.slice(1).split("")) {
+            transformed += flipper ? c.toUpperCase() : c.toLowerCase();
+            flipper = !flipper;
+          }
+          return transformed;
         }
 
         charMapSub(cMap, text) {
