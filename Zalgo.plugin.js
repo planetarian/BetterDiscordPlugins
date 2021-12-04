@@ -346,9 +346,9 @@ let Zalgo = (() => {
         }
 
         getMocking(text) {
-          let transformed = text.slice(0,1);
+          let transformed = text.slice(0, 1);
           let flipper = true;
-          for(let c of text.slice(1).split("")) {
+          for (let c of text.slice(1).split("")) {
             transformed += flipper ? c.toUpperCase() : c.toLowerCase();
             flipper = !flipper;
           }
