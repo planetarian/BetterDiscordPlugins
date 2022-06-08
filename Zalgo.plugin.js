@@ -24,7 +24,7 @@
 @else@*/
 
 var Zalgo = (() => {
-    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.4.0","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"},"changelog":[{"title":"0.4.0","items":["Fixed breakage caused by discord update","Switched from element manipulation to method patching"]},{"title":"0.3.0","items":["Fixed breakage caused by discord update","Switched from locally-tracked classes to use DiscordSelectors"]},{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
+    const config = {"info":{"name":"Zalgo","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.5.0","description":"Zalgo text generation plugin -- write something {{like this}} to corrupt it l̕i̸̶͜ḱ͟e͏̶͢ ̨̛t̢̛҉̧ḩ͘i͘̕͏́͟ş̸̢͘͏\r\nYou can configure the amount of corruption in settings, or prefix it with a corruption amount:\r\n{{0.01:just a little corrupt}} -> j̨ųs͏t̨ ̷a͘ ̸l̶i̷t̀t҉l͡e҉ ̴c̡o͏r҉ŕu̡p̢t̕\r\nYou can also ramp the corruption amount gradually:\r\n{{r:start at zero and get more corrupted}} -> st̶a̷r̸t͜ ҉a̴t̡ ͘z̢e̵r̵o͡ ͝a̡ńd̡ ̛g͝e͞t͏̷ ͜m͟ó̡r̕͠e̸̴ ҉̨͟c̨̀͢͠ơ̕̕͝͞r̸̵̡͢ŕ̛͞u̧p̨͟͝t̴̶͝e̷̡d͏̴́͡","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/Zalgo.plugin.js"},"changelog":[{"title":"0.5.0","items":["Added start and end character customization"]},{"title":"0.4.0","items":["Fixed breakage caused by discord update","Switched from element manipulation to method patching"]},{"title":"0.3.0","items":["Fixed breakage caused by discord update","Switched from locally-tracked classes to use DiscordSelectors"]},{"title":"Plugin revamp","items":["Switched to new plugin format","Switched to new ZeresLib"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -106,7 +106,9 @@ var Zalgo = (() => {
                 rampEnd: 0.7,
                 corruptUp: false,
                 corruptMid: true,
-                corruptDown: false
+                corruptDown: false,
+                startCharacters: '{{',
+                endCharacters: '}}'
             };
         }
 
@@ -124,7 +126,10 @@ var Zalgo = (() => {
                 // startAmount: corruption amount at start of ramp; enables ramping even without <r>
                 // endamount: corruption amount at end of ramp, or across whole string if no ramp
                 // text: text to apply zalgo corruption to
-                let regex = /\{\{(?:(?:(?:(o|b))?,?)?(?:(r)(\d+(?:\.\d+)?)?,?)?(?:(\d+(?:\.\d+)?)-)?(\d+(?:\.\d+)?)?\:)?((?:(?!{{).)*?)\}\}/g;
+                const escapeSpecial = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const startChars = escapeSpecial(this.settings.startCharacters || '{{');
+                const endChars = escapeSpecial(this.settings.endCharacters || '}}');
+                const regex = new RegExp(startChars + "(?:(?:(?:(o|b))?,?)?(?:(r)(\d+(?:\.\d+)?)?,?)?(?:(\d+(?:\.\d+)?)-)?(\d+(?:\.\d+)?)?\:)?((?:(?!{{).)*?)" + endChars);
                 if (regex.test(content)) {
                     content = content.replace(regex, this.doZalgo.bind(this));
                     if (content.length > 2000) {
@@ -155,7 +160,9 @@ var Zalgo = (() => {
                     new Settings.Slider("Ramp end position", "Adjusts the endpoint of the ramp-in when using the `r` prefix",
                         0.05, 1.0, this.settings.rampEnd, e => { this.settings.rampEnd = e; }),
                     new Settings.Switch("Obscure text", "Determines whether zalgo characters are placed over the text or beneath it (use the `o` or `b` prefixes to set this in-line)",
-                        this.settings.corruptMid, e => { this.settings.corruptMid = e; })
+                        this.settings.corruptMid, e => { this.settings.corruptMid = e; }),
+                        new Settings.Textbox("Start characters", "Unique characters to mark the start of zalgo text.", this.settings.startCharacters || '{{', e => {this.settings.startCharacters = e;}),
+                        new Settings.Textbox("End characters", "Unique characters to mark the end of zalgo text.", this.settings.endCharacters || '}}', e => {this.settings.endCharacters = e;}),
                 )
             );
         }
