@@ -73,10 +73,9 @@ var TwitFixer = (() => {
             
             Patcher.before(DiscordModules.MessageActions, "sendMessage", (t,a) => {
                 let content = a[1].content;
-                let regex = /https?:\/\/twitter.com\//g;
-                let replace = 'https://fxtwitter.com/';
+                let regex = /(https?:\/\/)(twitter\.com\/\w+\/status\/\d+\b)/g;
                 if (regex.test(content)) {
-                    content = content.replace(regex, replace);
+                    content = content.replace(regex, '$1vx$2');
                     if (content.length > 2000) {
                         PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + value.length, {type: 'error'});
                         e.preventDefault();
