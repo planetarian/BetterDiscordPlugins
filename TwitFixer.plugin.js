@@ -24,7 +24,7 @@
 @else@*/
 
 var TwitFixer = (() => {
-    const config = {"info":{"name":"TwitFixer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.1","description":"Automatically replaces links to twitter with links using fxtwitter.com","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"},"changelog":[{"title":"0.0.1","items":["Initial version"]}],"main":"index.js"};
+    const config = {"info":{"name":"TwitFixer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Automatically replaces links to twitter with links using fxtwitter.com","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"},"changelog":[{"title":"0.0.2","items":["FX->VX"]},{"title":"0.0.1","items":["Initial version"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
