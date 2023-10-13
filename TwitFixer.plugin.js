@@ -24,7 +24,7 @@
 @else@*/
 
 var TwitFixer = (() => {
-    const config = {"info":{"name":"TwitFixer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.2","description":"Automatically replaces links to twitter with links using fxtwitter.com","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"},"changelog":[{"title":"0.0.2","items":["FX->VX"]},{"title":"0.0.1","items":["Initial version"]}],"main":"index.js"};
+    const config = {"info":{"name":"TwitFixer","authors":[{"name":"Chami","discord_id":"165709167095578625","github_username":"planetarian","twitter_username":"pir0zhki"}],"version":"0.0.4","description":"Automatically replace twitter.com and x.com links with vxtwitter.com","github":"https://github.com/planetarian/BetterDiscordPlugins","github_raw":"https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"},"changelog":[{"title":"0.0.4","items":["Inverted Ctrl mode. Will now transform to vx by default, and hold Ctrl to bypass."]},{"title":"0.0.3","items":["Hold Ctrl to apply transform"]},{"title":"0.0.2","items":["FX->VX"]},{"title":"0.0.1","items":["Initial version"]}],"main":"index.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -61,7 +61,9 @@ var TwitFixer = (() => {
 
     const { Logger, DiscordModules, Patcher, Settings } = Library;
 
-    return class TwitFixer extends Plugin {
+    return class Twithisixer extends Plugin {
+        modifierDown = false;
+
         constructor() {
             super();
 
@@ -70,25 +72,31 @@ var TwitFixer = (() => {
 
         onStart() {
             Logger.log("Started");
-            
+
             Patcher.before(DiscordModules.MessageActions, "sendMessage", (t,a) => {
                 let content = a[1].content;
-                let regex = /(https?:\/\/)(twitter\.com\/\w+\/status\/\d+\b)/g;
-                if (regex.test(content)) {
-                    content = content.replace(regex, '$1vx$2');
+                let regex = /(https?:\/\/)(?:x|twitter)\.com(\/\w+\/status\/\d+\b)/g;
+                if (!this.modifierDown && regex.test(content)) {
+                    content = content.replace(regex, '$1vxtwitter.com$2');
                     if (content.length > 2000) {
-                        PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + value.length, {type: 'error'});
+                        PluginUtilities.showToast("This message would exceed the 2000-character limit.\r\nTotal Length: " + value.length, {type: 'error'});
                         e.preventDefault();
                         return;
                     }
                     a[1].content = content;
                 }
             });
+            
+            document.addEventListener('keydown', this.checkKey.bind(this));
+            document.addEventListener('keyup', this.checkKey.bind(this));
 
             this.update();
         }
 
         onStop() {
+            document.removeEventListener('keydown', this.checkKey.bind(this));
+            document.removeEventListener('keyup', this.checkKey.bind(this));
+
             /// Using patch method for now
             Patcher.unpatchAll();
             Logger.log("Stopped");
@@ -96,6 +104,11 @@ var TwitFixer = (() => {
         
         update() {
             this.initialized = true;
+        }
+        
+        checkKey(ev) {
+            if (this.modifierDown != ev.ctrlKey)
+                this.modifierDown = ev.ctrlKey;
         }
     };
 
