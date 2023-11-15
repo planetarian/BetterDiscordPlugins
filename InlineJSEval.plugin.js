@@ -1,11 +1,11 @@
 /**
- * @name TwitFixer
- * @description Automatically replace twitter.com and x.com links with vxtwitter.com
- * @version 0.0.5
+ * @name InlineJSEval
+ * @description Execute raw JavaScript straight from the chatbox with `eval(...)`
+ * @version 0.1.1
  * @author Chami
  * @authorId 165709167095578625
  * @website https://github.com/planetarian/BetterDiscordPlugins
- * @source https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js
+ * @source https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/InlineJSEval.plugin.js
  */
 /*@cc_on
 @if (@_jscript)
@@ -32,7 +32,7 @@
 @else@*/
 const config = {
     info: {
-        name: "TwitFixer",
+        name: "InlineJSEval",
         authors: [
             {
                 name: "Chami",
@@ -41,40 +41,23 @@ const config = {
                 twitter_username: "pir0zhki"
             }
         ],
-        version: "0.0.5",
-        description: "Automatically replace twitter.com and x.com links with vxtwitter.com",
+        version: "0.1.1",
+        description: "Execute raw JavaScript straight from the chatbox with `eval(...)`",
         github: "https://github.com/planetarian/BetterDiscordPlugins",
-        github_raw: "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"
+        github_raw: "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/InlineJSEval.plugin.js"
     },
     changelog: [
         {
-            title: "0.0.5",
+            title: "0.1.1",
             items: [
                 "Rebuilt with updated toolset"
             ]
         },
         {
-            title: "0.0.4",
+            title: "0.1.0",
             items: [
-                "Inverted Ctrl mode. Will now transform to vx by default, and hold Ctrl to bypass."
-            ]
-        },
-        {
-            title: "0.0.3",
-            items: [
-                "Hold Ctrl to apply transform"
-            ]
-        },
-        {
-            title: "0.0.2",
-            items: [
-                "FX->VX"
-            ]
-        },
-        {
-            title: "0.0.1",
-            items: [
-                "Initial version"
+                "Switched to new plugin format",
+                "Switched to new ZeresLib"
             ]
         }
     ],
@@ -112,13 +95,12 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Api]) => {
 
     const { Logger, DiscordModules, Patcher, Settings } = Library;
 
-    return class Twithisixer extends Plugin {
-        modifierDown = false;
-
+    return class InlineJSEval extends Plugin {
         constructor() {
             super();
+            this.defaultSettings = {
 
-            this.defaultSettings = {};
+            };
         }
 
         onStart() {
@@ -126,43 +108,35 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Api]) => {
 
             Patcher.before(DiscordModules.MessageActions, "sendMessage", (t,a) => {
                 let content = a[1].content;
-                let regex = /(https?:\/\/)(?:x|twitter)\.com(\/\w+\/status\/\d+\b)/g;
-                if (!this.modifierDown && regex.test(content)) {
-                    content = content.replace(regex, '$1vxtwitter.com$2');
+
+                const regex = new RegExp("someRegex");
+                if (regex.test(content)) {
                     if (content.length > 2000) {
-                        PluginUtilities.showToast("This message would exceed the 2000-character limit.\r\nTotal Length: " + value.length, {type: 'error'});
+                        PluginUtilities.showToast("This message would exceed the 2000-character limit.\nReduce corruption amount or shorten text.\n\nLength including corruption: " + value.length, {type: 'error'});
                         e.preventDefault();
                         return;
                     }
                     a[1].content = content;
                 }
             });
-            
-            document.addEventListener('keydown', this.checkKey.bind(this));
-            document.addEventListener('keyup', this.checkKey.bind(this));
 
             this.update();
         }
 
         onStop() {
-            document.removeEventListener('keydown', this.checkKey.bind(this));
-            document.removeEventListener('keyup', this.checkKey.bind(this));
-
-            /// Using patch method for now
             Patcher.unpatchAll();
             Logger.log("Stopped");
         }
-        
-        update() {
+
+        getSettingsPanel() {
+            return "<h3>" + this.getName() + " Settings</h3>";
+            //return Settings.SettingPanel.build(this.saveSettings.bind(this), ...)
+        }
+
+        update () {
             this.initialized = true;
         }
-        
-        checkKey(ev) {
-            if (this.modifierDown != ev.ctrlKey)
-                this.modifierDown = ev.ctrlKey;
-        }
     };
-
 };
      return plugin(Plugin, Api);
 })(global.ZeresPluginLibrary.buildPlugin(config));
