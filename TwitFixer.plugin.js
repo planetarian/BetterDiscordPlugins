@@ -1,7 +1,7 @@
 /**
  * @name TwitFixer
- * @description Automatically replace twitter.com and x.com links with vxtwitter.com
- * @version 0.0.5
+ * @description Automatically replace twitter.com and x.com links with fxtwitter.com
+ * @version 0.1.0
  * @author Chami
  * @authorId 165709167095578625
  * @website https://github.com/planetarian/BetterDiscordPlugins
@@ -41,12 +41,18 @@ const config = {
                 twitter_username: "pir0zhki"
             }
         ],
-        version: "0.0.5",
-        description: "Automatically replace twitter.com and x.com links with vxtwitter.com",
+        version: "0.1.0",
+        description: "Automatically replace twitter.com and x.com links with fxtwitter.com",
         github: "https://github.com/planetarian/BetterDiscordPlugins",
         github_raw: "https://raw.githubusercontent.com/planetarian/BetterDiscordPlugins/master/TwitFixer.plugin.js"
     },
     changelog: [
+        {
+            title: "0.1.0",
+            items: [
+                "Changed to fxtwitter with /en"
+            ]
+        },
         {
             title: "0.0.5",
             items: [
@@ -126,9 +132,11 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Api]) => {
 
             Patcher.before(DiscordModules.MessageActions, "sendMessage", (t,a) => {
                 let content = a[1].content;
-                let regex = /(https?:\/\/)(?:x|twitter)\.com(\/\w+\/status\/\d+\b)/g;
+                
+                let regex = /(?<pre>https?:\/\/)(?:x|(?:(?:v|f)x)?twitter)\.com(?<post>\/\w+\/status\/\d+(?:\/photo(?:\/(?<photonum>\d+)?)?)?)(?:\/en)*(?<query>(?:\?$|[a-zA-Z0-9\.\,\;\?\'\\\+&%\$\=~_\-\*]+))?(?<fragment>#[a-zA-Z0-9\-\.]+)?/gi;
                 if (!this.modifierDown && regex.test(content)) {
-                    content = content.replace(regex, '$1vxtwitter.com$2');
+                    const replace = (match, pre, post, photonum, query, fragment, rest) => pre + "fxtwitter.com" + post + "/en";
+                    content = content.replace(regex, replace);
                     if (content.length > 2000) {
                         PluginUtilities.showToast("This message would exceed the 2000-character limit.\r\nTotal Length: " + value.length, {type: 'error'});
                         e.preventDefault();
